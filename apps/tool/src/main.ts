@@ -16,7 +16,7 @@
 import { button, h, icon } from "./dom";
 import { mark } from "./logo";
 import { openGuide, startGuide } from "./guide";
-import { host, isShell, onShellBoot } from "./host";
+import { host, isShell, onShellBoot, onUpdate, type UpdateState } from "./host";
 import { closeModal, confirmDialog, openModal, toast } from "./ui";
 import {
   backupInfo,
@@ -47,7 +47,7 @@ import { templatesScreen } from "./screens/templates";
 import { weeksScreen } from "./screens/weeks";
 import { customiseScreen } from "./screens/customise";
 import { exportScreen } from "./screens/exportScreen";
-import { aboutScreen } from "./screens/about";
+import { aboutScreen, REPO_URL } from "./screens/about";
 
 /* ══════════════════════════════════════════════════════════════════════════
    THE RAIL
@@ -378,6 +378,97 @@ function newFile() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   ⭐⭐ UPDATES — OFFERED, NEVER SILENT, AND NEVER WHILE SOMETHING ELSE IS UP
+   ══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ THE RUST SIDE HAS DONE ALL OF THIS SINCE THE FIRST COMMIT and nothing
+   called it. `checkUpdate`, `applyUpdate`, the `.old` rollback, the `take()`
+   that makes a second click a no-op — all there, all unreachable, because the
+   two halves of the bridge never met. v0.2.0 shipped with an updater that
+   could not run, which is why nobody was ever offered v0.3.0.
+
+   ⭐ A CHECK ON LAUNCH, ONCE. A school runs this off a shared drive and nobody
+   goes looking for a release page; if the app does not say, nothing does.
+
+   ⚠️ AND "UP TO DATE" IS ONLY SAID WHEN SOMEBODY ASKED. On the launch check it
+   is silence — an unprompted "you are up to date" on every single start is
+   noise people learn to dismiss, and it is the same dialog that will one day
+   carry something they need to read. */
+
+let updateOffered = false;
+
+function showUpdate(state: UpdateState) {
+  const asked = state.asked;
+  if (state.kind === "current") {
+    if (asked) toast(`Version ${host.version} is the latest.`, "good");
+    return;
+  }
+  if (state.kind === "failed") {
+    /* ⚠️ NEVER FOLDED INTO "up to date". A blocked school network is not a
+       current version, and saying so would leave somebody on a broken build
+       believing they had checked. */
+    if (asked) toast(state.message, "bad", 11000);
+    return;
+  }
+
+  /* One offer per launch. The check is fired once, but a manual check can land
+     on top of an offer already open. */
+  if (updateOffered) return;
+  updateOffered = true;
+
+  /* ⚠️ DEFERRED WHILE ANOTHER MODAL IS UP. `offerRestore()` runs at the same
+     moment on the one launch that matters — somebody closed the app with
+     unsaved work — and two sheets stacked is how both get dismissed unread. */
+  const show = () => {
+    const modal = document.getElementById("modal");
+    if (modal?.classList.contains("open")) {
+      setTimeout(show, 900);
+      return;
+    }
+    openModal(
+      `Version ${state.version} is available`,
+      state.notes.trim() ||
+        "A newer version of Monospace Timetable has been released.",
+      state.canApply
+        ? null
+        : /* ⚠️ WHY IT CANNOT INSTALL ITSELF, in the shell's own words: a
+             read-only share, or Program Files without admin. Without the
+             reason this is a button that does nothing and no explanation. */
+          h(
+            "p.hint",
+            null,
+            state.reason ||
+              "This copy cannot replace itself where it is stored, so the new version has to be downloaded by hand.",
+          ),
+      [
+        button("Not now", { cls: "ghost", onclick: closeModal }),
+        state.canApply
+          ? button("Update and restart", {
+              cls: "primary",
+              icon: "download",
+              onclick: () => {
+                closeModal();
+                /* ⚠️ THE APP CLOSES ITSELF WHEN THIS SUCCEEDS — Rust swaps the
+                   running exe and relaunches. So the last thing said has to be
+                   said now; there is no "done" to come back to. */
+                toast("Downloading the update. The app will restart.", "", 12000);
+                host.applyUpdate();
+              },
+            })
+          : button("Open the download page", {
+              cls: "primary",
+              onclick: () => {
+                closeModal();
+                host.openExternal(state.pageUrl || REPO_URL);
+              },
+            }),
+      ],
+    );
+  };
+  show();
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    THE RESTORE OFFER
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -539,6 +630,14 @@ function start() {
   });
 
   offerRestore();
+
+  /* ⭐ ONE CHECK, ON LAUNCH, SHELL ONLY. Delayed past the first paint so a slow
+     or blocked network cannot hold up the app starting — the answer arrives on
+     Rust's own thread whenever it arrives. */
+  if (isShell) {
+    onUpdate(showUpdate);
+    setTimeout(() => host.checkForUpdate(), 2500);
+  }
 }
 
 if (document.readyState === "loading") {

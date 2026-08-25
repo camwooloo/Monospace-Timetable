@@ -17,7 +17,8 @@
 
 import { SCHOOL_DOCUMENT_EXTENSION, SCHOOL_DOCUMENT_VERSION } from "../engine";
 import { button, card, h, notice } from "../dom";
-import { host } from "../host";
+import { host, isShell } from "../host";
+import { toast } from "../ui";
 import { openGuide } from "../guide";
 
 export const REPO_URL = "https://github.com/camwooloo/Monospace-Timetable";
@@ -45,6 +46,21 @@ export function aboutScreen(): HTMLElement {
           icon: "compass",
           onclick: () => openGuide(0),
         }),
+        /* ⭐ ONLY IN THE DESKTOP APP. A browser has nothing to update — the
+           page IS the release — and a button that always answers "you have the
+           latest" is a button that teaches people not to trust it.
+           ⚠️ The answer arrives through `onUpdate` in `main.ts`, not from this
+           call: Rust checks on its own thread, because on a school connection
+           it is a network round trip that can take a while or never finish. */
+        isShell
+          ? button("Check for updates", {
+              icon: "download",
+              onclick: () => {
+                toast("Checking for updates…", "", 3000);
+                host.checkForUpdate(true);
+              },
+            })
+          : null,
         h("span.mono.tiny.mut", null, REPO_URL),
       ),
       h(

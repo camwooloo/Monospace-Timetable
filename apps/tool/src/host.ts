@@ -112,10 +112,70 @@ export interface Host {
    * stop Ctrl+S re-prompting; it must never outlive its document.
    */
   forgetDocumentPath(): void;
+  /**
+   * ⭐ ASK WHETHER THERE IS A NEWER RELEASE. Answers arrive through
+   * `onUpdate`, not as a promise: Rust does the check on its OWN THREAD
+   * because it is a network round trip on a school connection, and it can
+   * answer long after the click.
+   */
+  checkForUpdate(asked?: boolean): void;
+  /** Download it and swap the running exe. The app closes and restarts. */
+  applyUpdate(): void;
   windowDrag(): void;
   windowMinimize(): void;
   windowToggleMaximize(): void;
   windowClose(): void;
+}
+
+/**
+ * What a check came back with.
+ *
+ * ⚠️ `current` AND `failed` ARE NOT THE SAME THING and must never be shown as
+ * one. A school network that blocks GitHub is not an app that is up to date,
+ * and telling somebody they have the latest version when nothing was checked is
+ * how they stay on a broken build for a term. Rust's own message says as much.
+ */
+/** ⚠️ NAMED SEPARATELY because `Omit<A | B, k>` collapses a union to the keys
+ *  its members SHARE — which here is `kind` alone. Intersecting distributes;
+ *  omitting does not. */
+type UpdatePayload =
+  | {
+      kind: "available";
+      version: string;
+      notes: string;
+      pageUrl: string;
+      /** False when the exe sits somewhere it cannot rewrite itself — a
+       *  read-only network share, Program Files without admin. `reason` says
+       *  which, and the offer becomes "download it" rather than "install it". */
+      canApply: boolean;
+      reason: string;
+    }
+  | { kind: "current"; version: string }
+  | { kind: "failed"; message: string };
+
+/** What a listener is handed: the answer, plus whether it was asked for. */
+export type UpdateState = UpdatePayload & { asked: boolean };
+
+const updateWaiters = new Set<(s: UpdateState) => void>();
+export function onUpdate(fn: (s: UpdateState) => void): void {
+  updateWaiters.add(fn);
+}
+/**
+ * ⚠️ WHETHER THE ANSWER NOW ARRIVING WAS ASKED FOR, and it is held HERE rather
+ * than in the screen that shows it — otherwise About would have to import from
+ * `main.ts`, which imports About, and a cycle whose exports are read during
+ * module init is a class of bug this app has no need to invite.
+ *
+ * Reset as the answer is delivered: one question, one answer. Left set, the
+ * next LAUNCH check would announce "you are up to date" unprompted, which is
+ * the noise the flag exists to prevent.
+ */
+let askedForIt = false;
+
+function tellUpdate(state: UpdatePayload) {
+  const asked = askedForIt;
+  askedForIt = false;
+  for (const fn of updateWaiters) fn({ ...state, asked });
 }
 
 /** Told when the shell's boot payload lands, so the version can be shown. */
@@ -222,10 +282,28 @@ window.MonospaceShell?.onMessage((message: ShellMessage) => {
       refuse("saveBook", text("message") || "The workbook could not be saved.");
       break;
 
+    case "updateAvailable":
+      tellUpdate({
+        kind: "available",
+        version: text("version"),
+        notes: text("notes"),
+        pageUrl: text("pageUrl"),
+        canApply: message.canApply === true,
+        reason: text("reason"),
+      });
+      break;
+    case "updateUpToDate":
+      tellUpdate({ kind: "current", version: text("version") });
+      break;
+    case "updateCheckFailed":
+    case "updateFailed":
+      tellUpdate({ kind: "failed", message: text("message") || "The update could not be applied." });
+      break;
+
     /* ⚠️ EVERYTHING ELSE IS DELIBERATELY IGNORED. Rust also sends the working
-       copy and the update messages; the page does not use them yet, and a
-       `default:` that threw would turn a feature the shell has and the page
-       has not into a crash. */
+       copy messages; the page does not use them yet, and a `default:` that
+       threw would turn a feature the shell has and the page has not into a
+       crash. */
     default:
       break;
   }
@@ -283,6 +361,14 @@ class ShellHost implements Host {
 
   forgetDocumentPath() {
     documentPath = "";
+  }
+
+  checkForUpdate(asked = false) {
+    askedForIt = asked;
+    shellSend({ type: "checkUpdate" });
+  }
+  applyUpdate() {
+    shellSend({ type: "applyUpdate" });
   }
 
   windowDrag() {
@@ -366,6 +452,16 @@ class BrowserHost implements Host {
 
   /* Nothing to forget: a browser save is a download and never has a path. */
   forgetDocumentPath() {}
+
+  /* ⚠️ A BROWSER HAS NOTHING TO UPDATE — the page IS the release. Reloading
+     gets the newest copy of whatever was downloaded, and there is no exe to
+     swap. Answering "current" rather than doing nothing keeps the About
+     screen's button honest instead of silently inert. */
+  checkForUpdate(asked = false) {
+    askedForIt = asked;
+    tellUpdate({ kind: "current", version: "web" });
+  }
+  applyUpdate() {}
 
   /* No-ops: a page cannot move the window it is in, and `WindowBar` is not
      drawn in a browser. Present so nothing above this file has to ask which
