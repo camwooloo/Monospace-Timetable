@@ -96,6 +96,12 @@ save and the app says so.
 
 Nothing is uploaded. There is no server. Turn off the internet and it still works.
 
+**And that same file opens in [Monospace](https://monospace.sh), both ways.** If your school already
+uses Monospace, you can pull a year out of it as a `.timetable.json`, open it here, and build the
+workbook — or do the whole timetable here first and load it into Monospace when you're ready, without
+typing any of it twice. The dates, the cycle, the closures, the day, the rooms and the whole standing
+timetable come across. Bookings don't, and Monospace tells you so before it imports anything.
+
 ---
 
 ## This is one feature of something bigger
