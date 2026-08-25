@@ -14,6 +14,7 @@
  */
 
 import { button, h, icon } from "./dom";
+import { mark } from "./logo";
 import { host } from "./host";
 import { closeModal, confirmDialog, openModal, toast } from "./ui";
 import {
@@ -76,7 +77,7 @@ function rail(): HTMLElement {
   return h(
     "nav.rail",
     { "aria-label": "Sections" },
-    h("div.mark", { title: "Monospace Timetable" }, "MT"),
+    h("div.mark", { title: "Monospace Timetable" }, mark(40)),
     ...RAIL.map((item) =>
       h(
         "button.rail-btn",

@@ -131,17 +131,89 @@ fn embed_resources() {
 }
 
 /// `assets/icon.png` → an `.ico` in `OUT_DIR`, or `None` if there isn't one.
+///
+/// ⚠️ SIX SIZES, NOT ONE, AND THAT IS NOT COMPLETENESS FOR ITS OWN SAKE. This
+/// wrote a single 256×256 entry, which is the size Windows uses in exactly one
+/// view. Explorer's Details and List views — the ones a school technician is
+/// actually in when they open Properties on an unsigned download — draw at 16
+/// and 20, and Windows got there by scaling 256 down on the fly, which turns a
+/// 2px stroke into grey mush. The `.ico` format exists to carry the small ones
+/// drawn deliberately; a downscale done here, once, beats one done per paint.
 #[cfg(windows)]
 fn encode_icon() -> Option<String> {
     let (rgba, w, h) = load_icon_png()?;
     let out_dir = std::env::var("OUT_DIR").ok()?;
     let ico_path = Path::new(&out_dir).join("icon.ico");
 
-    let image = ico::IconImage::from_rgba_data(w, h, rgba);
     let mut dir = ico::IconDir::new(ico::ResourceType::Icon);
-    dir.add_entry(ico::IconDirEntry::encode(&image).ok()?);
+    let mut added = 0usize;
+    for size in [256u32, 128, 64, 48, 32, 16] {
+        // Never upscale: a source smaller than the target would only invent
+        // detail, and the entry is better absent than soft.
+        if size > w || size > h {
+            continue;
+        }
+        let scaled = if size == w && size == h {
+            rgba.clone()
+        } else {
+            box_resize(&rgba, w, h, size, size)
+        };
+        let image = ico::IconImage::from_rgba_data(size, size, scaled);
+        if let Ok(entry) = ico::IconDirEntry::encode(&image) {
+            dir.add_entry(entry);
+            added += 1;
+        }
+    }
+    if added == 0 {
+        return None;
+    }
+    println!("cargo:warning=shell: icon.ico carries {added} size(s)");
     dir.write(std::fs::File::create(&ico_path).ok()?).ok()?;
     ico_path.to_str().map(str::to_string)
+}
+
+/// Area-average downscale, premultiplying alpha.
+///
+/// ⚠️ THE PREMULTIPLY IS THE WHOLE POINT. Averaging straight RGBA lets a fully
+/// transparent pixel's colour — black, here, in the rounded corners — drag the
+/// average of its neighbours towards it, so the mark picks up a dark halo that
+/// only shows at 16 and 32 and only against a light background. Weighting each
+/// sample by its own alpha and dividing back out at the end is what stops it.
+///
+/// A box filter and not Lanczos: this is a downscale of a flat vector render
+/// by an integer-ish factor, where the two are indistinguishable, and the
+/// alternative is a build-dependency on an image crate for one function.
+#[cfg(windows)]
+fn box_resize(src: &[u8], sw: u32, sh: u32, dw: u32, dh: u32) -> Vec<u8> {
+    let mut out = vec![0u8; (dw * dh * 4) as usize];
+    for dy in 0..dh {
+        let y0 = dy * sh / dh;
+        let y1 = (((dy + 1) * sh + dh - 1) / dh).min(sh).max(y0 + 1);
+        for dx in 0..dw {
+            let x0 = dx * sw / dw;
+            let x1 = (((dx + 1) * sw + dw - 1) / dw).min(sw).max(x0 + 1);
+            let (mut r, mut g, mut b, mut a, mut n) = (0f64, 0f64, 0f64, 0f64, 0f64);
+            for y in y0..y1 {
+                for x in x0..x1 {
+                    let i = ((y * sw + x) * 4) as usize;
+                    let av = src[i + 3] as f64 / 255.0;
+                    r += src[i] as f64 * av;
+                    g += src[i + 1] as f64 * av;
+                    b += src[i + 2] as f64 * av;
+                    a += av;
+                    n += 1.0;
+                }
+            }
+            let o = ((dy * dw + dx) * 4) as usize;
+            if a > 0.0 {
+                out[o] = (r / a).round().clamp(0.0, 255.0) as u8;
+                out[o + 1] = (g / a).round().clamp(0.0, 255.0) as u8;
+                out[o + 2] = (b / a).round().clamp(0.0, 255.0) as u8;
+            }
+            out[o + 3] = (a / n * 255.0).round().clamp(0.0, 255.0) as u8;
+        }
+    }
+    out
 }
 
 /// Newest `…\Windows Kits\10\bin\<ver>\x64` directory that contains rc.exe.
