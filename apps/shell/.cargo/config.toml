@@ -1,0 +1,18 @@
+# ⚠️ CARGO READS THIS BY CURRENT WORKING DIRECTORY, NOT BY MANIFEST PATH.
+#
+# `cargo build` run from inside apps/shell/ picks it up. `cargo build -p
+# monospace-timetable-shell` run from the repo root DOES NOT, and you get a
+# binary that silently needs the VC++ redistributable — which is precisely the
+# thing a portable exe must never ask a school to install, and which fails as a
+# blank "missing VCRUNTIME140.dll" box on the machines least likely to have it.
+#
+# So: build from this directory, or copy this file to the workspace root if one
+# is ever added above us. CI does the former. The check that settles it is
+# `scripts/check-static-crt.py` — it reads the PE import table of the built exe
+# and fails if VCRUNTIME140.dll / MSVCP140.dll / api-ms-win-crt-* appear.
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

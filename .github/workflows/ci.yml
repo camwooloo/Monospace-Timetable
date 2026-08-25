@@ -1,0 +1,200 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  CI — what must be true on every push
+# ══════════════════════════════════════════════════════════════════════════
+#
+# ⭐ THE JOB THAT MATTERS IS `engine`. It runs the fixture gate: the workbook
+# this repository generates is compared, member by member on the raw
+# compressed bytes, against reference `.xlsx` files produced by MONOSPACE'S
+# OWN WRITER and committed to `packages/engine/fixtures/`.
+#
+# It is the only thing standing between a refactor and a school's timetable
+# quietly coming out different — different colours, a lost lock, a week that
+# no longer follows its template. None of that shows up in a typecheck, and
+# most of it would not show up in a screenshot either. If this job goes red,
+# the workbook moved, and somebody has to say why before the fixtures are
+# regenerated.
+#
+# The other two jobs cover the hosts: that the document is still ONE
+# self-contained file, and that the Windows binary still compiles, passes its
+# tests on Windows, and has the real document inside it.
+
+name: CI
+
+on:
+  push:
+    # `branches`, not bare `push`, so tags are left to release.yml rather than
+    # running the same gate twice under two names.
+    branches: ["**"]
+  pull_request:
+
+# A newer push supersedes an older one on the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Kept identical to release.yml. See the banner there — this is the whole set
+# of assumptions either workflow makes about the layout of the repository.
+env:
+  HTML_ARTEFACT: apps/tool/dist/timetable.html
+  RUST_MANIFEST_DIR: apps/shell
+  NODE_VERSION: "22"
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────
+  # ⭐ THE FIXTURE GATE
+  # ────────────────────────────────────────────────────────────────────────
+  engine:
+    name: Engine fixture gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install the workspace
+        run: npm install
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Runs the committed-fixture comparison, the live comparison when a
+      # Monospace checkout is present (it is not, here — that is the point of
+      # committing the bytes), the browser bundle executed in a `vm` with only
+      # browser globals, the CT_Worksheet element-sequence check, and the
+      # class-colour palette pin.
+      #
+      # ⚠️ And it checks that it is still there to run: root `test` is
+      # `--workspaces --if-present`, which turns a workspace that has lost its
+      # `test` script into a silent pass. Same guard as release.yml.
+      - name: The gate — our bytes against Monospace's
+        run: |
+          set -euo pipefail
+          node -e 'if (!require("./packages/engine/package.json").scripts?.test) {
+            console.error("::error::packages/engine has no test script, so the root `npm test` is a green no-op. The fixture gate is NOT running.");
+            process.exit(1);
+          }'
+          npm test
+
+  # ────────────────────────────────────────────────────────────────────────
+  # The `.html` download: still one file, still needing nothing.
+  # ────────────────────────────────────────────────────────────────────────
+  document:
+    name: Self-contained document
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and verify the document
+        id: html
+        uses: ./.github/actions/build-html
+        with:
+          html-path: ${{ env.HTML_ARTEFACT }}
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Say so on the summary
+        run: |
+          echo "**\`timetable.html\`** — ${{ steps.html.outputs.bytes }} bytes, no external subresources." >> "$GITHUB_STEP_SUMMARY"
+
+      # Not a release artefact — a build of this branch, so a change can be
+      # tried in a browser without anybody building it locally.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timetable-html-${{ github.sha }}
+          path: ${{ env.HTML_ARTEFACT }}
+          if-no-files-found: error
+          retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────────────
+  # The `.exe` download: compiles, passes its tests on Windows, and carries
+  # the real document. Here the document is built on the same runner, because
+  # this build is thrown away. In `release.yml` it is emphatically NOT — the
+  # released `.exe` embeds the one file the released `.html` came from.
+  # ────────────────────────────────────────────────────────────────────────
+  windows:
+    name: Windows binary
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the crate is where this workflow says it is
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$RUST_MANIFEST_DIR/Cargo.toml" ]; then
+            echo "::error::No Cargo.toml at $RUST_MANIFEST_DIR"
+            echo "Set RUST_MANIFEST_DIR at the top of this file AND of release.yml."
+            echo "Cargo.toml files found under the repository:"
+            find . -name Cargo.toml -not -path './target/*' -maxdepth 4 || true
+            exit 1
+          fi
+
+      # The crate bakes the document in at compile time, so it has to exist
+      # before cargo runs.
+      - name: Build the document
+        uses: ./.github/actions/build-html
+        with:
+          html-path: ${{ env.HTML_ARTEFACT }}
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Point the crate at it
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "MONOSPACE_TIMETABLE_HTML=$(pwd)/$HTML_ARTEFACT" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.RUST_MANIFEST_DIR }} -> target
+          key: windows-ci
+
+      - name: Rust tests
+        working-directory: ${{ env.RUST_MANIFEST_DIR }}
+        run: cargo test --locked
+
+      # Release profile as well as debug: link-time optimisation and the
+      # static CRT in apps/shell/.cargo/config.toml only fail in release, and
+      # release is the profile that ships.
+      - name: Release build
+        working-directory: ${{ env.RUST_MANIFEST_DIR }}
+        run: cargo build --release --locked
+
+      - name: Find the binary
+        id: exe
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t found < <(find "$RUST_MANIFEST_DIR/target/release" target/release -maxdepth 1 -name '*.exe' -type f 2>/dev/null | sort -u || true)
+          if [ "${#found[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one .exe, found ${#found[@]}"
+            printf '  %s\n' "${found[@]:-}"
+            exit 1
+          fi
+          echo "path=${found[0]}" >> "$GITHUB_OUTPUT"
+
+      # ⚠️ Read out of the PE, not inferred from the flags. `+crt-static` in
+      # apps/shell/.cargo/config.toml is resolved by CURRENT WORKING
+      # DIRECTORY, so it holds only because the build step sets
+      # `working-directory`; and `windows_subsystem` is an attribute in
+      # main.rs nothing else checks. Both fail silently — a dynamically linked
+      # CRT is a missing-DLL box on a school PC, a console subsystem is a
+      # black flash on every launch — and both are visible in the headers.
+      - name: Prove the static CRT and the GUI subsystem survived
+        shell: bash
+        run: python "$RUST_MANIFEST_DIR/scripts/check-static-crt.py" '${{ steps.exe.outputs.path }}'
+
+      # ⚠️⚠️ Caught here rather than at release time, because the failure mode
+      # is a build that succeeds and ships a placeholder UI to a school.
+      - name: Prove the exe embeds the real document
+        uses: ./.github/actions/check-embedded
+        with:
+          html: ${{ env.HTML_ARTEFACT }}
+          exe: ${{ steps.exe.outputs.path }}

@@ -1,0 +1,37 @@
+# Every class code → the fill colour colourForClass() derives for it.
+#
+# ⚠️ A DIFF HERE IS A COLOUR CHANGING IN EVERY SCHOOL'S WORKBOOK. The
+# palette is a gamut bisection inside a lightness bisection and its own
+# rule is 'measure, never reason from the constants' — so it is pinned
+# here as measured output rather than trusted as arithmetic.
+#
+# `-` in the colour column means the string names no class and gets no
+# fill, which is as load-bearing as any of the hexes: a free-text booking
+# and the withheld-purpose word 'Booked' must never be coloured.
+#
+# Regenerate with `npm run fixtures:refresh`.
+
+"7A/Cs"	FF9EE3B8
+"7B/Cs"	FF9EE1B9
+"8C/Bs"	FFDCC5B6
+"8D/It"	FFEAC0B1
+"9E/It"	FFE6B1A0
+"  9F/It"	FFE3B1A4
+"9F/It"	FFE3B1A4
+"9F/It "	FFE3B1A4
+"10D/Bs"	FFCBAB92
+"10E/Cs"	FF86BC98
+"10x/Ma3"	FF98B4C7
+"11C/Bs"	FFC09C84
+"11B/It"	FFDA8F7B
+"12/Cs1"	FF6D9E80
+"13/It2"	FFC2674E
+"13B/Ph1"	FF5F8895
+""	-
+"-"	-
+"7A"	-
+"Booked"	-
+"Code Club"	-
+"GCSE speaking exams"	-
+"Mock exam"	-
+"Staff briefing"	-

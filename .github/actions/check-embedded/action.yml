@@ -1,0 +1,64 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  ⚠️⚠️ PROVE THE BINARY CONTAINS THE REAL DOCUMENT, NOT THE PLACEHOLDER
+# ══════════════════════════════════════════════════════════════════════════
+#
+# `apps/shell/build.rs` stages the front-end into the exe **best-effort**: if
+# it cannot find the document it copies `assets/placeholder.html` instead and
+# emits a `cargo:warning`. That is the right behaviour for a developer working
+# on the Rust side before the front-end exists — and it is a loaded gun
+# pointed at a release, because:
+#
+#   · the build SUCCEEDS,
+#   · the exe is the right name and roughly the right size,
+#   · every other check in the workflow passes,
+#   · and a school downloads a program whose entire UI is a placeholder.
+#
+# Grepping the cargo log for the warning is not enough: build scripts are
+# cached, and a restored cache replays the compile without replaying the
+# warning. So this looks at the bytes that actually shipped. `build.rs` copies
+# the document verbatim and `src/html.rs` `include_str!`s it, so the document
+# is present in the binary literally — a 512-byte slice taken from its middle
+# has to be findable inside the exe.
+#
+# If the crate ever compresses what it embeds, this fails loudly and gets
+# rewritten. That is the correct outcome: a check that quietly stops checking
+# is worse than one that breaks.
+
+name: Check the embedded document
+description: Fails if the built binary does not contain the front-end document byte for byte.
+
+inputs:
+  html:
+    description: Path to the document that was supposed to be embedded.
+    required: true
+  exe:
+    description: Path to the built binary.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: The document must be inside the binary
+      shell: bash
+      run: |
+        set -euo pipefail
+        node -e '
+          const fs = require("fs");
+          const [htmlPath, exePath] = process.argv.slice(1);
+          const html = fs.readFileSync(htmlPath);
+          const exe  = fs.readFileSync(exePath);
+          const at = html.length >> 1;
+          const probe = html.subarray(at, at + 512);
+          if (probe.length < 64) {
+            console.error("::error::" + htmlPath + " is too small to probe (" + html.length + " bytes)");
+            process.exit(1);
+          }
+          if (!exe.includes(probe)) {
+            console.error("::error::" + exePath + " does not contain " + htmlPath + ".");
+            console.error("apps/shell/build.rs falls back to assets/placeholder.html with only a");
+            console.error("cargo:warning, so a binary carrying the placeholder UI builds, passes every");
+            console.error("other check, and ships. Confirm MONOSPACE_TIMETABLE_HTML reached build.rs.");
+            process.exit(1);
+          }
+          console.log("✓ " + exePath + " (" + exe.length + " bytes) embeds " + htmlPath + " (" + html.length + " bytes)");
+        ' '${{ inputs.html }}' '${{ inputs.exe }}'

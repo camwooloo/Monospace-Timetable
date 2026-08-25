@@ -1,0 +1,2739 @@
+{
+  "formatVersion": 1,
+  "school": {
+    "name": "Ashgrove High School",
+    "accent": "#4f6d7a"
+  },
+  "export": {
+    "linkTemplates": true,
+    "hideEndedWeeks": true,
+    "protectTemplates": true,
+    "lockPrefilled": true
+  },
+  "roomSheets": [
+    {
+      "id": "sheet-it",
+      "name": "IT Rooms",
+      "fields": [
+        {
+          "id": "f-teacher",
+          "label": "Teacher",
+          "kind": "text"
+        },
+        {
+          "id": "f-pcs",
+          "label": "No of PCs",
+          "kind": "number"
+        },
+        {
+          "id": "f-phone",
+          "label": "Telephone",
+          "kind": "number"
+        }
+      ],
+      "rooms": [
+        {
+          "id": "r-n21",
+          "name": "N21",
+          "active": true,
+          "values": {
+            "f-teacher": "J Barnes",
+            "f-pcs": "30",
+            "f-phone": "2101"
+          }
+        },
+        {
+          "id": "r-n22",
+          "name": "N22",
+          "active": true,
+          "values": {
+            "f-teacher": "A Okafor",
+            "f-pcs": "28",
+            "f-phone": "2102"
+          }
+        },
+        {
+          "id": "r-n23",
+          "name": "N23",
+          "active": true,
+          "values": {
+            "f-teacher": "-",
+            "f-pcs": "15",
+            "f-phone": "0x10"
+          }
+        },
+        {
+          "id": "r-n24",
+          "name": "N24",
+          "active": true,
+          "values": {
+            "f-teacher": "S Whitfield",
+            "f-pcs": "32",
+            "f-phone": "2104"
+          }
+        },
+        {
+          "id": "r-n25",
+          "name": "N25",
+          "active": true,
+          "values": {
+            "f-teacher": "M Devlin",
+            "f-pcs": "24",
+            "f-phone": "2105"
+          }
+        },
+        {
+          "id": "r-n26",
+          "name": "N26",
+          "active": false,
+          "values": {
+            "f-teacher": "—",
+            "f-pcs": "12",
+            "f-phone": "2106"
+          }
+        }
+      ]
+    }
+  ],
+  "years": [
+    {
+      "id": "y-2526",
+      "name": "2025/26",
+      "timezone": "Europe/London",
+      "start": "2025-09-03",
+      "end": "2026-07-17",
+      "cycleLength": 2,
+      "anchorMonday": "2025-09-01",
+      "anchorWeekIndex": 0,
+      "holidayMode": "pause",
+      "weekLabels": [
+        "Week A",
+        "Week B"
+      ],
+      "periods": [
+        {
+          "ordinal": 9,
+          "name": "Registration",
+          "order": 0,
+          "isTeaching": false,
+          "start": "08:45",
+          "end": "09:00"
+        },
+        {
+          "ordinal": 1,
+          "name": "Period 1",
+          "order": 1,
+          "isTeaching": true,
+          "start": "09:00",
+          "end": "10:00"
+        },
+        {
+          "ordinal": 2,
+          "name": "Period 2",
+          "order": 2,
+          "isTeaching": true,
+          "start": "10:00",
+          "end": "11:00"
+        },
+        {
+          "ordinal": 3,
+          "name": "Break 1",
+          "order": 3,
+          "isTeaching": false,
+          "start": "11:00",
+          "end": "11:20"
+        },
+        {
+          "ordinal": 4,
+          "name": "Period 3",
+          "order": 4,
+          "isTeaching": true,
+          "start": "11:20",
+          "end": "12:20"
+        },
+        {
+          "ordinal": 5,
+          "name": "Period 4",
+          "order": 5,
+          "isTeaching": true,
+          "start": "12:20",
+          "end": "13:20"
+        },
+        {
+          "ordinal": 6,
+          "name": "Break 2",
+          "order": 6,
+          "isTeaching": false,
+          "start": "13:20",
+          "end": "14:00"
+        },
+        {
+          "ordinal": 7,
+          "name": "Period 5",
+          "order": 7,
+          "isTeaching": true,
+          "start": "14:00",
+          "end": "15:00"
+        },
+        {
+          "ordinal": 8,
+          "name": "Period 6",
+          "order": 8,
+          "isTeaching": true
+        }
+      ],
+      "roomSheetId": "sheet-it",
+      "templates": []
+    },
+    {
+      "id": "y-2627",
+      "name": "2026/27",
+      "timezone": "Europe/London",
+      "start": "2026-09-02",
+      "end": "2027-07-16",
+      "cycleLength": 2,
+      "anchorMonday": "2026-08-31",
+      "anchorWeekIndex": 0,
+      "holidayMode": "pause",
+      "weekLabels": [
+        "Week A",
+        "Week B"
+      ],
+      "taughtWeekdays": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "closures": [
+        {
+          "id": "c-1",
+          "label": "Autumn half term",
+          "kind": "holiday",
+          "start": "2026-10-26",
+          "end": "2026-11-06"
+        },
+        {
+          "id": "c-2",
+          "label": "Christmas",
+          "kind": "holiday",
+          "start": "2026-12-21",
+          "end": "2027-01-01"
+        },
+        {
+          "id": "c-3",
+          "label": "February half term",
+          "kind": "holiday",
+          "start": "2027-02-15",
+          "end": "2027-02-19"
+        },
+        {
+          "id": "c-4",
+          "label": "Easter",
+          "kind": "holiday",
+          "start": "2027-03-29",
+          "end": "2027-04-09"
+        },
+        {
+          "id": "c-5",
+          "label": "May half term",
+          "kind": "holiday",
+          "start": "2027-05-31",
+          "end": "2027-06-04"
+        },
+        {
+          "id": "c-6",
+          "label": "INSET day",
+          "kind": "inset",
+          "start": "2026-11-09",
+          "end": "2026-11-09"
+        },
+        {
+          "id": "c-7",
+          "label": "May Day",
+          "kind": "bank",
+          "start": "2027-05-03",
+          "end": "2027-05-03"
+        }
+      ],
+      "pins": [
+        {
+          "monday": "2027-03-15",
+          "cycleWeek": 0,
+          "reason": "Published map says A"
+        }
+      ],
+      "periods": [
+        {
+          "ordinal": 9,
+          "name": "Registration",
+          "order": 0,
+          "isTeaching": false,
+          "start": "08:45",
+          "end": "09:00"
+        },
+        {
+          "ordinal": 1,
+          "name": "Period 1",
+          "order": 1,
+          "isTeaching": true,
+          "start": "09:00",
+          "end": "10:00"
+        },
+        {
+          "ordinal": 2,
+          "name": "Period 2",
+          "order": 2,
+          "isTeaching": true,
+          "start": "10:00",
+          "end": "11:00"
+        },
+        {
+          "ordinal": 3,
+          "name": "Break 1",
+          "order": 3,
+          "isTeaching": false,
+          "start": "11:00",
+          "end": "11:20"
+        },
+        {
+          "ordinal": 4,
+          "name": "Period 3",
+          "order": 4,
+          "isTeaching": true,
+          "start": "11:20",
+          "end": "12:20"
+        },
+        {
+          "ordinal": 5,
+          "name": "Period 4",
+          "order": 5,
+          "isTeaching": true,
+          "start": "12:20",
+          "end": "13:20"
+        },
+        {
+          "ordinal": 6,
+          "name": "Break 2",
+          "order": 6,
+          "isTeaching": false,
+          "start": "13:20",
+          "end": "14:00"
+        },
+        {
+          "ordinal": 7,
+          "name": "Period 5",
+          "order": 7,
+          "isTeaching": true,
+          "start": "14:00",
+          "end": "15:00"
+        },
+        {
+          "ordinal": 8,
+          "name": "Period 6",
+          "order": 8,
+          "isTeaching": true
+        }
+      ],
+      "roomSheetId": "sheet-it",
+      "templates": [
+        {
+          "id": "t-0-0-1-1",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-0-1-4",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-0-1-5",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-0-1-7",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-0-1-8",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-0-2-1",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-0-2-2",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-0-2-5",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-0-2-7",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-0-2-8",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-0-3-1",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-0-3-2",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-0-3-4",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-0-3-7",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-0-3-8",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-0-4-1",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-0-4-2",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-0-4-4",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-0-4-5",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-0-4-8",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-0-5-2",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-0-5-4",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-0-5-5",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-0-5-7",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-1-1-1",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-1-1-2",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-1-1-5",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-1-1-7",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-1-1-8",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-1-2-1",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-1-2-2",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-1-2-4",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-1-2-7",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-1-2-8",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-1-3-1",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-1-3-2",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-1-3-4",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-1-3-5",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-1-3-8",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-1-4-2",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-1-4-4",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-1-4-5",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-1-4-7",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-1-5-1",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-1-5-4",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-1-5-5",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-1-5-7",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-1-5-8",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-2-1-1",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-2-1-2",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-2-1-4",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-2-1-7",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-2-1-8",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-2-2-1",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-2-2-2",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-2-2-4",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-2-2-5",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-2-2-8",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-2-3-2",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-2-3-4",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-2-3-5",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-2-3-7",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-2-4-1",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-2-4-4",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-2-4-5",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-2-4-7",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-2-4-8",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-2-5-1",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-2-5-2",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-2-5-5",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-2-5-7",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-2-5-8",
+          "roomId": "r-n23",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-3-1-1",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-3-1-2",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-3-1-4",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-3-1-5",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-3-1-8",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-3-2-2",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-3-2-4",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-3-2-5",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-3-2-7",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-3-3-1",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-3-3-4",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-3-3-5",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-3-3-7",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-3-3-8",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-3-4-1",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-3-4-2",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-3-4-5",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-3-4-7",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-3-4-8",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-3-5-1",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-3-5-2",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-3-5-4",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-3-5-7",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-3-5-8",
+          "roomId": "r-n24",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-4-1-2",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-4-1-4",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-4-1-5",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-4-1-7",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-4-2-1",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-4-2-4",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-4-2-5",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-4-2-7",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-4-2-8",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-4-3-1",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-4-3-2",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-4-3-5",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-4-3-7",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-4-3-8",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-4-4-1",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-4-4-2",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-4-4-4",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-4-4-7",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-4-4-8",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-4-5-1",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-0-4-5-2",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-4-5-4",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-4-5-5",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-4-5-8",
+          "roomId": "r-n25",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-5-1-1",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-5-1-4",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-5-1-5",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-5-1-7",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-5-1-8",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-5-2-1",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-5-2-2",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-5-2-5",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-0-5-2-7",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-5-2-8",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-5-3-1",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-5-3-2",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-5-3-4",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-0-5-3-7",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-0-5-3-8",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-0-5-4-1",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-0-5-4-2",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-5-4-4",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-0-5-4-5",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-0-5-4-8",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-0-5-5-2",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-0-5-5-4",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-0-5-5-5",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-0-5-5-7",
+          "roomId": "r-n26",
+          "cycleWeek": 0,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-0-1-1",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-0-1-2",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-0-1-5",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-0-1-7",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-0-1-8",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-0-2-1",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-0-2-2",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-0-2-4",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-0-2-7",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-0-2-8",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-0-3-1",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-0-3-2",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-0-3-4",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-0-3-5",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-0-3-8",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-0-4-2",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-0-4-4",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-0-4-5",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-0-4-7",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-0-5-1",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-0-5-4",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-0-5-5",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-0-5-7",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-0-5-8",
+          "roomId": "r-n21",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-1-1-1",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-1-1-2",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-1-1-4",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-1-1-7",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-1-1-8",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-1-2-1",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-1-2-2",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-1-2-4",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-1-2-5",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-1-2-8",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-1-3-2",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-1-3-4",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-1-3-5",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-1-3-7",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-1-4-1",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-1-4-4",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-1-4-5",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-1-4-7",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-1-4-8",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-1-5-1",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-1-5-2",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-1-5-5",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-1-5-7",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-1-5-8",
+          "roomId": "r-n22",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-2-1-1",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-2-1-2",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-2-1-4",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-2-1-5",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-2-1-8",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-2-2-2",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-2-2-4",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-2-2-5",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-2-2-7",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-2-3-1",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-2-3-4",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-2-3-5",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-2-3-7",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-2-3-8",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-2-4-1",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-2-4-2",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-2-4-5",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-2-4-7",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-2-4-8",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-2-5-1",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-2-5-2",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-2-5-4",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-2-5-7",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-2-5-8",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-3-1-2",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-3-1-4",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-3-1-5",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-3-1-7",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-3-2-1",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-3-2-4",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-3-2-5",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-3-2-7",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-3-2-8",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-3-3-1",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-3-3-2",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-3-3-5",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-3-3-7",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-3-3-8",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-3-4-1",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-3-4-2",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-3-4-4",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-3-4-7",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-3-4-8",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-3-5-1",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-3-5-2",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-3-5-4",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-3-5-5",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-3-5-8",
+          "roomId": "r-n24",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-4-1-1",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-4-1-4",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 4,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-4-1-5",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-4-1-7",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-4-1-8",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-4-2-1",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-4-2-2",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-4-2-5",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 5,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-4-2-7",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-4-2-8",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-4-3-1",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-4-3-2",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-4-3-4",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-4-3-7",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-4-3-8",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-4-4-1",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-4-4-2",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-4-4-4",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-4-4-5",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-4-4-8",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-4-5-2",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 2,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-4-5-4",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-4-5-5",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-4-5-7",
+          "roomId": "r-n25",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-5-1-1",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 1,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-5-1-2",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 2,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-5-1-5",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 5,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-5-1-7",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 7,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-5-1-8",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 1,
+          "periodOrdinal": 8,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-5-2-1",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 1,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-5-2-2",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-5-2-4",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 4,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-5-2-7",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 7,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-1-5-2-8",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 2,
+          "periodOrdinal": 8,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-5-3-1",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 1,
+          "label": "13/It2"
+        },
+        {
+          "id": "t-1-5-3-2",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 2,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-5-3-4",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 4,
+          "label": "9F/It"
+        },
+        {
+          "id": "t-1-5-3-5",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 5,
+          "label": "11B/It"
+        },
+        {
+          "id": "t-1-5-3-8",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 3,
+          "periodOrdinal": 8,
+          "label": "8C/Bs"
+        },
+        {
+          "id": "t-1-5-4-2",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 2,
+          "label": "11C/Bs"
+        },
+        {
+          "id": "t-1-5-4-4",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 4,
+          "label": "7A/Cs"
+        },
+        {
+          "id": "t-1-5-4-5",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 5,
+          "label": "8D/It"
+        },
+        {
+          "id": "t-1-5-4-7",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 7,
+          "label": "10D/Bs"
+        },
+        {
+          "id": "t-1-5-5-1",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 1,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-5-5-4",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 4,
+          "label": "10E/Cs"
+        },
+        {
+          "id": "t-1-5-5-5",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 5,
+          "label": "12/Cs1"
+        },
+        {
+          "id": "t-1-5-5-7",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 7,
+          "label": "7B/Cs"
+        },
+        {
+          "id": "t-1-5-5-8",
+          "roomId": "r-n26",
+          "cycleWeek": 1,
+          "weekday": 5,
+          "periodOrdinal": 8,
+          "label": "9E/It"
+        },
+        {
+          "id": "t-freetext-1",
+          "roomId": "r-n21",
+          "cycleWeek": 0,
+          "weekday": 3,
+          "periodOrdinal": 7,
+          "label": "Staff briefing"
+        },
+        {
+          "id": "t-dash-1",
+          "roomId": "r-n22",
+          "cycleWeek": 0,
+          "weekday": 4,
+          "periodOrdinal": 1,
+          "label": "-"
+        },
+        {
+          "id": "t-untimed-1",
+          "roomId": "r-n23",
+          "cycleWeek": 1,
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "12/Cs1"
+        }
+      ],
+      "weekChanges": [
+        {
+          "id": "wc-1",
+          "roomId": "r-n21",
+          "monday": "2027-01-11",
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "label": "9F/It",
+          "changedBy": "A Okafor",
+          "changedAt": 1799418600000
+        },
+        {
+          "id": "wc-2",
+          "roomId": "r-n24",
+          "monday": "2027-01-11",
+          "weekday": 2,
+          "periodOrdinal": 2,
+          "changedBy": "A Okafor",
+          "changedAt": 1799418600000
+        },
+        {
+          "id": "wc-3",
+          "roomId": "r-n22",
+          "monday": "2027-03-15",
+          "weekday": 4,
+          "periodOrdinal": 8,
+          "label": "Mock exam",
+          "changedAt": 1804669200000
+        }
+      ],
+      "bookings": [
+        {
+          "id": "b-1",
+          "roomId": "r-n25",
+          "startUtc": 1799744400000,
+          "endUtc": 1799748000000,
+          "localDate": "2027-01-12",
+          "status": "approved",
+          "purpose": "GCSE speaking exams"
+        },
+        {
+          "id": "b-2",
+          "roomId": "r-n23",
+          "startUtc": 1799846400000,
+          "endUtc": 1799848800000,
+          "localDate": "2027-01-13",
+          "status": "approved",
+          "purpose": "Code Club"
+        },
+        {
+          "id": "b-3",
+          "roomId": "r-n21",
+          "startUtc": 1799925600000,
+          "endUtc": 1799929200000,
+          "localDate": "2027-01-14",
+          "status": "approved"
+        },
+        {
+          "id": "b-4",
+          "roomId": "r-n24",
+          "startUtc": 1800003600000,
+          "endUtc": 1800007200000,
+          "localDate": "2027-01-15",
+          "status": "cancelled",
+          "purpose": "Cancelled — must not appear"
+        }
+      ]
+    }
+  ]
+}

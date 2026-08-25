@@ -1,0 +1,38 @@
+# ──────────────────────────────────────────────────────────────────────────
+#  Repository-wide ignores.
+#
+#  ⚠️ LOCKFILES ARE NOT IGNORED, ON PURPOSE. `package-lock.json` and
+#  `Cargo.lock` are what make a build in a year's time resemble a build
+#  today, and this project ships a binary to schools that will not be
+#  rebuilt often. If you find yourself wanting to ignore one, you want to
+#  commit it instead.
+#
+#  ⚠️ `*.xlsx` IS NOT IGNORED EITHER. `packages/engine/fixtures/*.xlsx` are
+#  the reference workbooks the fixture gate compares against, byte for
+#  byte. Ignoring spreadsheets would silently delete the only proof this
+#  project produces the right file.
+# ──────────────────────────────────────────────────────────────────────────
+
+# Node
+node_modules/
+.npm/
+npm-debug.log*
+
+# Build output. `dist/timetable.html` at the repo root is a build artefact,
+# not a source file — the release workflow rebuilds it from the front-end.
+dist/
+build/
+*.tsbuildinfo
+
+# Rust
+target/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local environment
+.env
+.env.local

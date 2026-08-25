@@ -1,0 +1,62 @@
+[package]
+name = "monospace-timetable-shell"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77"
+description = "Portable desktop shell for Monospace Timetable — window, updater, file I/O. The workbook is built in the webview."
+license = "AGPL-3.0-only"
+authors = ["Cam Wooloo"]
+repository = "https://github.com/camwooloo/Monospace-Timetable"
+publish = false
+
+# The exe a school double-clicks. The updater looks for a release asset whose
+# name ends in `.exe`, so keep this in step with the CI artefact name.
+[[bin]]
+name = "MonospaceTimetable"
+path = "src/main.rs"
+
+[build-dependencies]
+winresource = "0.1"
+ico = "0.3"
+png = "0.17"
+
+[dependencies]
+serde_json = "1"
+tao = "0.36"
+wry = "0.56"
+# `default-features = false` drops rfd's xdg-portal/async-std stack, which only
+# serves Linux. Windows uses IFileDialog and macOS uses AppKit either way.
+rfd = { version = "0.15", default-features = false }
+# The traits rfd's `set_parent` wants. Same 0.6 line tao and rfd both use, so
+# the tao window satisfies them directly rather than needing a shim.
+raw-window-handle = "0.6"
+base64 = "0.22"
+# `native-certs` is not decoration: schools run TLS-inspecting proxies with a
+# private CA in the machine store. webpki-roots alone would reject them and the
+# update check would fail on exactly the networks this app is written for.
+ureq = { version = "2", features = ["json", "native-certs"] }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    # AttachConsole. `windows_subsystem = "windows"` means a release build has
+    # no stdout of its own, so --diagnostics/--help/--version borrow the
+    # console they were launched from. See attach_parent_console in main.rs.
+    "Win32_System_Console",
+    "Win32_System_Registry",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+# Pulled in directly for one function: the WebView2 pre-flight probe. wry
+# already depends on this exact version, so it unifies rather than duplicating.
+webview2-com-sys = "0.38"
+
+# Matches Discord-Quests. `panic = "abort"` and `strip` are what keep a portable
+# single-file exe near 3 MB; `lto`/`codegen-units = 1` pay for themselves here.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

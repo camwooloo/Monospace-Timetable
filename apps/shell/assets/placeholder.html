@@ -1,0 +1,169 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Monospace Timetable — shell</title>
+<!--
+  The stand-in front-end, embedded when no built document is found at the path
+  named by FRONTEND_HTML in build.rs. It is not decoration: it exercises every
+  message in the bridge contract, so the shell can be smoke-tested on a real
+  Windows machine before the front-end exists, and so a failing school build can
+  be narrowed to "shell" or "front-end" in one screen.
+
+  It is also deliberately plain. Nothing here should be mistaken for the app.
+-->
+<style>
+  :root {
+    --bg: #0f1012; --panel: #17191d; --line: #262a31;
+    --ink: #e7e9ee; --dim: #8b929f; --accent: #7c8cf8; --bad: #f87171; --good: #6ee7a8;
+    font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--ink); display: flex; flex-direction: column; font-size: 13px; }
+  header {
+    height: 38px; flex: 0 0 auto; display: flex; align-items: center; gap: 10px;
+    padding-left: 14px; background: var(--panel); border-bottom: 1px solid var(--line);
+    user-select: none;
+  }
+  header .title { flex: 1; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  header button { width: 42px; height: 38px; border: 0; background: transparent; color: var(--dim); font-size: 14px; cursor: pointer; }
+  header button:hover { background: #22262d; color: var(--ink); }
+  header button.close:hover { background: #b4232a; color: #fff; }
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: 320px 1fr; }
+  nav { border-right: 1px solid var(--line); padding: 16px; overflow-y: auto; }
+  nav h2 { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin: 18px 0 8px; }
+  nav h2:first-child { margin-top: 0; }
+  nav button {
+    display: block; width: 100%; text-align: left; margin: 0 0 6px;
+    padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: #1b1e23; color: var(--ink); font: inherit; font-size: 12px; cursor: pointer;
+  }
+  nav button:hover { border-color: var(--accent); }
+  section { padding: 16px 18px; overflow-y: auto; }
+  .banner { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; }
+  .banner b { color: var(--accent); }
+  .banner p { margin: 6px 0 0; color: var(--dim); line-height: 1.55; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0 0 16px; }
+  dt { color: var(--dim); }
+  dd { margin: 0; word-break: break-all; }
+  #log { border: 1px solid var(--line); border-radius: 6px; background: #121418; padding: 10px 12px; height: 44%; min-height: 180px; overflow-y: auto; white-space: pre-wrap; line-height: 1.5; }
+  #log .t { color: var(--dim); }
+  #log .in { color: var(--good); }
+  #log .out { color: var(--accent); }
+  #log .err { color: var(--bad); }
+</style>
+
+<header>
+  <span class="title" id="drag">Monospace Timetable · shell placeholder</span>
+  <button id="min" title="Minimise">&#8211;</button>
+  <button id="max" title="Maximise">&#9723;</button>
+  <button id="close" class="close" title="Close">&#10005;</button>
+</header>
+
+<main>
+  <nav>
+    <h2>Documents</h2>
+    <button data-send='{"type":"openDocument"}'>Open a timetable file…</button>
+    <button id="saveDoc">Save a timetable file…</button>
+    <button data-send='{"type":"readWorkingCopy"}'>Read the working copy</button>
+    <button id="writeWorking">Write the working copy</button>
+
+    <h2>Workbook</h2>
+    <button id="saveWorkbook">Save a test .xlsx…</button>
+
+    <h2>Shell</h2>
+    <button data-send='{"type":"ready"}'>Ask for the boot payload</button>
+    <button data-send='{"type":"checkUpdate"}'>Check for an update</button>
+    <button data-send='{"type":"revealDataDir"}'>Show the data folder</button>
+    <button data-send='{"type":"openExternal","url":"https://github.com/camwooloo/Monospace-Timetable"}'>Open the repo</button>
+  </nav>
+
+  <section>
+    <div class="banner">
+      <b>This is the shell, not the app.</b>
+      <p>No built front-end was found at build time, so the placeholder document
+         was embedded instead. Every button on the left sends one real bridge
+         message; the log below shows what went out and what came back.</p>
+    </div>
+    <dl id="boot"><dt>boot</dt><dd>waiting…</dd></dl>
+    <div id="log"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var log = document.getElementById("log");
+  function line(kind, text) {
+    var t = new Date().toTimeString().slice(0, 8);
+    var el = document.createElement("div");
+    el.innerHTML = '<span class="t">' + t + '</span> <span class="' + kind + '">' +
+      (kind === "out" ? "→" : kind === "in" ? "←" : "!") + "</span> " +
+      text.replace(/[<&]/g, function (c) { return c === "<" ? "&lt;" : "&amp;"; });
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  var shell = window.MonospaceShell;
+  if (!shell) {
+    line("err", "window.MonospaceShell is absent — this document is running in a plain browser, " +
+                "not in the shell. File actions would use the browser's own APIs here.");
+    document.getElementById("boot").innerHTML = "<dt>boot</dt><dd>no shell</dd>";
+  }
+
+  function send(msg) {
+    line("out", JSON.stringify(msg));
+    if (shell) shell.send(msg); else line("err", "not delivered — no shell");
+  }
+  window.__send = send;
+
+  if (shell) {
+    shell.onMessage(function (msg) {
+      var copy = JSON.parse(JSON.stringify(msg));
+      if (typeof copy.text === "string" && copy.text.length > 120) {
+        copy.text = copy.text.slice(0, 120) + "… (" + msg.text.length + " chars)";
+      }
+      line(msg.type && /failed|error/i.test(msg.type) ? "err" : "in", JSON.stringify(copy));
+      if (msg.type === "boot") {
+        var dl = document.getElementById("boot");
+        dl.innerHTML = "";
+        Object.keys(msg).forEach(function (k) {
+          if (k === "type") return;
+          var dt = document.createElement("dt"); dt.textContent = k;
+          var dd = document.createElement("dd"); dd.textContent = String(msg[k]);
+          dl.appendChild(dt); dl.appendChild(dd);
+        });
+      }
+    });
+    send({ type: "ready" });
+  }
+
+  document.querySelectorAll("[data-send]").forEach(function (b) {
+    b.addEventListener("click", function () { send(JSON.parse(b.dataset.send)); });
+  });
+
+  document.getElementById("drag").addEventListener("mousedown", function () {
+    if (shell) shell.send({ type: "drag" });
+  });
+  document.getElementById("min").onclick = function () { send({ type: "minimize" }); };
+  document.getElementById("max").onclick = function () { send({ type: "toggleMaximize" }); };
+  document.getElementById("close").onclick = function () { send({ type: "close" }); };
+
+  var sample = JSON.stringify({ formatVersion: 1, school: { name: "Placeholder School" }, years: [] }, null, 2);
+
+  document.getElementById("saveDoc").onclick = function () {
+    send({ type: "saveDocument", text: sample, suggestedName: "placeholder.timetable.json" });
+  };
+  document.getElementById("writeWorking").onclick = function () {
+    send({ type: "writeWorkingCopy", text: sample });
+  };
+  document.getElementById("saveWorkbook").onclick = function () {
+    // Not a real workbook — enough bytes to prove the base64 hop and the
+    // save dialog work. The real one comes from the engine's streaming writer.
+    var bytes = new Uint8Array(2048);
+    bytes[0] = 0x50; bytes[1] = 0x4b; bytes[2] = 0x03; bytes[3] = 0x04;
+    for (var i = 4; i < bytes.length; i++) bytes[i] = i & 0xff;
+    var bin = "";
+    for (var j = 0; j < bytes.length; j++) bin += String.fromCharCode(bytes[j]);
+    send({ type: "saveWorkbook", base64: btoa(bin), suggestedName: "placeholder.xlsx" });
+  };
+})();
+</script>

@@ -1,0 +1,141 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  BUILD THE FRONT-END — ONE PLACE, BECAUSE THERE ARE TWO CALLERS
+# ══════════════════════════════════════════════════════════════════════════
+#
+# `ci.yml` and `release.yml` both need the single self-contained document.
+# ⚠️ IF EACH ONE BUILT IT WITH ITS OWN STEPS THEY WOULD DRIFT — a flag added
+# to one, a node version bumped in the other — and the drift would show up as
+# a released `.html` that behaves unlike every `.html` CI ever checked. So the
+# build lives here and both callers `uses:` it.
+#
+# The same rule inside a release: the `.exe` embeds the document this action
+# produced ONCE on Linux, downloaded as an artefact. It is never rebuilt on
+# Windows. Two builds of "the same" bundle is two bundles.
+
+name: Build the front-end
+description: Builds the single self-contained timetable document and proves it is self-contained.
+
+inputs:
+  html-path:
+    description: Where the front-end build is contracted to write the document, relative to the repository root.
+    required: false
+    default: apps/tool/dist/timetable.html
+  node-version:
+    description: Node major version.
+    required: false
+    default: "22"
+
+outputs:
+  bytes:
+    description: Size of the produced document, in bytes.
+    value: ${{ steps.verify.outputs.bytes }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+        cache-dependency-path: "**/package-lock.json"
+
+    # ⚠️ `npm install`, not `npm ci`, and deliberately. A root
+    # `package-lock.json` IS committed and `npm install` honours it; `npm ci`
+    # would additionally delete and reinstall `node_modules` on every run and
+    # fail outright the first time a workspace's dependencies move ahead of
+    # the lock, which is a hard stop on a repository one person maintains.
+    # Reproducibility here does not rest on the lockfile anyway — the engine
+    # pins `exceljs` exactly, and the fixture gate compares the produced
+    # workbook to committed reference BYTES, which is a far stronger check
+    # than a resolved dependency tree.
+    - name: Install the workspace
+      shell: bash
+      run: npm install
+
+    # Root `build` is `build:engine` then `build:apps`. ⚠️ THE ORDER IS NOT
+    # WHAT MAKES THE DOCUMENT WORK — `apps/tool/src/engine.ts` imports the
+    # engine's `src/` by relative path and esbuild compiles it in the same
+    # pass, so `dist/` is not on the document's path at all (see that file's
+    # banner for why). `build:engine` runs first because it is the step that
+    # would fail on a type error in the engine, and finding that out before
+    # bundling 600 KB is cheaper. If it is ever reordered, nothing about the
+    # `.html` changes — do not "fix" a bundling problem by moving it back.
+    - name: Build the engine, then the document
+      shell: bash
+      run: npm run build
+
+    - name: Prove it is one self-contained file
+      id: verify
+      shell: bash
+      run: |
+        set -euo pipefail
+        f='${{ inputs.html-path }}'
+
+        if [ ! -f "$f" ]; then
+          echo "::error::The front-end build produced no $f"
+          echo ""
+          echo "THREE PLACES HAVE TO NAME THE SAME FILE, and one of them does not:"
+          echo "  1. apps/tool — wherever its build script writes the document"
+          echo "  2. apps/shell/build.rs — the FRONTEND_HTML default, relative to that crate"
+          echo "  3. HTML_ARTEFACT at the top of .github/workflows/{ci,release}.yml,"
+          echo "     which is what feeds the html-path input to this action"
+          echo ""
+          d="$(dirname "$f")"
+          if [ -d "$d" ]; then
+            echo "What is actually in $d:"
+            ls -la "$d"
+            # Not self-healing on purpose — it says what it found and stops.
+            found=$(find "$d" -maxdepth 1 -name '*.html' -type f | head -5 || true)
+            [ -n "$found" ] && { echo "Did you mean:"; echo "$found"; }
+          else
+            echo "$d does not exist. The front-end build wrote nothing."
+          fi
+          exit 1
+        fi
+
+        bytes=$(wc -c < "$f" | tr -d ' ')
+        echo "bytes=$bytes" >> "$GITHUB_OUTPUT"
+        echo "$f is $bytes bytes"
+
+        # ── THE FLOOR IS THE CHECK THAT EARNS ITS KEEP ──────────────────────
+        # The measured document is ~595 KB, almost all of it the inlined
+        # engine and writer. The realistic failure is a bundler config change
+        # that emits a shell referencing an external .js instead of inlining
+        # it: the build stays green, the file collapses to a few KB, and it is
+        # broken on the first machine that opens it offline — which is every
+        # machine this is meant for.
+        if [ "$bytes" -lt 300000 ]; then
+          echo "::error::$f is only $bytes bytes. Expected ~595 KB with the engine inlined."
+          echo "A document this small is a shell that loads its code from somewhere else."
+          exit 1
+        fi
+        if [ "$bytes" -gt 8000000 ]; then
+          echo "::error::$f is $bytes bytes, far over the ~595 KB expected. Something is being embedded twice."
+          exit 1
+        fi
+
+        # ── NO SUBRESOURCES, FROM ANYWHERE ─────────────────────────────────
+        # "Needs nothing at all" is the promise the README makes to a school,
+        # and apps/shell writes this same document to %TEMP% and opens it in
+        # the default browser when WebView2 is missing — the machine least
+        # likely to have a working network is exactly the one that gets it.
+        # <a href> is NOT checked: linking out is fine, fetching is not.
+        #
+        # MEASURED against the real 557 KB inlined bundle: zero false
+        # positives, and each probe fires on its own failure injected into a
+        # full-size document.
+        fail=0
+        probe() {
+          if grep -Eqi "$1" "$f"; then
+            echo "::error::$f contains an external subresource ($2). The document must need nothing."
+            grep -Eoi "$1" "$f" | head -3 || true
+            fail=1
+          fi
+        }
+        probe '<script[[:space:]][^>]*src=' 'a <script src=>'
+        probe '<link[[:space:]][^>]*href=["'"'"']?(https?:)?//' 'a <link> to a URL'
+        probe '<(img|iframe|source|audio|video)[[:space:]][^>]*src=["'"'"']?(https?:)?//' 'a remote media src'
+        probe '@import[[:space:]]*(url\()?["'"'"']?(https?:)?//' 'a CSS @import of a URL'
+        [ "$fail" -eq 0 ] || exit 1
+
+        echo "✓ one file, $bytes bytes, no external subresources"

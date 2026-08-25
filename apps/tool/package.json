@@ -1,0 +1,24 @@
+{
+  "name": "@monospace-timetable/tool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The timetable front end — one self-contained HTML document, which is both the standalone tool a school downloads and the document the Rust shell embeds.",
+  "license": "AGPL-3.0-only",
+  "author": "Cam Wooloo",
+  "type": "module",
+  "scripts": {
+    "build": "node --import tsx scripts/build.ts",
+    "build:dev": "MINIFY=0 node --import tsx scripts/build.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "serve": "node scripts/serve.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "esbuild": "^0.24.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

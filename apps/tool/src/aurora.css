@@ -1,0 +1,1121 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   AURORA — Cam's system, from Discord-Quests/src/ui.rs and Rustify
+   ══════════════════════════════════════════════════════════════════════════
+
+   Dark first, with a light theme. Glass surfaces over two blurred blooms.
+   ⚠️ THE TOKENS ARE HIS, VERBATIM — accent #b794f6, secondary #34d399, radius
+   26/16, the 88px rail, --ease and --spring. This tool has to look like it
+   belongs beside those two, so a "nicer" purple here is drift, not taste.
+
+   ⚠️⚠️ AND NOT ONE COLOUR IN HERE TOUCHES THE GRID. The timetable grid is the
+   PRINTED DOCUMENT: its bands come from `gridSurfaces(paper, isDark, accent)`
+   and its chips from `gridClassFill`, both out of the engine, both the byte
+   the workbook writes. Aurora is the furniture AROUND the paper — the rail,
+   the cards, the buttons, the fields. See `grid.ts`, which takes its ground
+   from `--paper` and derives everything else from the engine.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --accent: #b794f6;
+  --accent-2: #34d399;
+  --accent-rgb: 183, 148, 246;
+  --accent-2-rgb: 52, 211, 153;
+  --bg-0: #05060d;
+  --bg-1: #0a0c18;
+  --text: #eef1fa;
+  --text-dim: #a6acc4;
+  --text-mute: #6b7290;
+  --on-accent: #0b0616;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-2: rgba(255, 255, 255, 0.085);
+  --glass-hi: rgba(255, 255, 255, 0.12);
+  --stroke: rgba(255, 255, 255, 0.1);
+  --stroke-2: rgba(255, 255, 255, 0.2);
+  --hairline: rgba(255, 255, 255, 0.08);
+  --shadow: 0 30px 80px -28px rgba(0, 0, 0, 0.7);
+  --ok: #34d399;
+  --warn: #f3c969;
+  --danger: #ff6b6b;
+
+  --rail-w: 88px;
+  --radius: 26px;
+  --radius-sm: 16px;
+
+  --ease: cubic-bezier(0.22, 0.9, 0.26, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --font: "Geist", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Bricolage Grotesque", "Segoe UI Variable Display", "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
+
+  /* ⭐ THE GROUND THE GRID IS DRAWN ON — the "paper" argument to
+     `gridSurfaces`. Read by `grid.ts` through `getComputedStyle`, so the two
+     halves of the page cannot disagree about what colour the page is. It is
+     an OPAQUE colour and never a glass one: `gridSurfaces` mixes over it. */
+  --paper: #0e1120;
+}
+
+html[data-theme="light"] {
+  --bg-0: #eef1f8;
+  --bg-1: #e3e8f5;
+  --text: #10131f;
+  --text-dim: #414863;
+  --text-mute: #6f7691;
+  --on-accent: #ffffff;
+  --glass: rgba(20, 26, 48, 0.045);
+  --glass-2: rgba(20, 26, 48, 0.075);
+  --glass-hi: rgba(20, 26, 48, 0.11);
+  --stroke: rgba(20, 26, 48, 0.12);
+  --stroke-2: rgba(20, 26, 48, 0.2);
+  --hairline: rgba(20, 26, 48, 0.09);
+  --shadow: 0 24px 60px -30px rgba(40, 50, 90, 0.35);
+  --paper: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg-0);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ── The blooms ─────────────────────────────────────────────────────────
+   Two soft circles at blur(90px), drifting on a 24s and a 28s loop. They are
+   `position: fixed` and `pointer-events: none`, so nothing in the app has to
+   know they exist.
+   ⚠️ THEY STOP UNDER `prefers-reduced-motion`, which is FORCED ON on Cam's
+   work machine — a bloom that only reads while it is moving would look broken
+   there by policy rather than by hardware. Still drawn, just still. */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 0%, var(--bg-1), var(--bg-0) 70%);
+}
+.bg::before,
+.bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+.bg::before {
+  width: 820px;
+  height: 820px;
+  left: -260px;
+  top: -360px;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.42), transparent 68%);
+  animation: float1 24s ease-in-out infinite;
+}
+.bg::after {
+  width: 760px;
+  height: 760px;
+  right: -240px;
+  bottom: -340px;
+  background: radial-gradient(circle, rgba(var(--accent-2-rgb), 0.24), transparent 68%);
+  animation: float2 28s ease-in-out infinite;
+}
+html[data-theme="light"] .bg::before {
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.3), transparent 68%);
+}
+html[data-theme="light"] .bg::after {
+  background: radial-gradient(circle, rgba(var(--accent-2-rgb), 0.18), transparent 68%);
+}
+
+@keyframes float1 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(70px, 50px);
+  }
+}
+@keyframes float2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-60px, -45px);
+  }
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ── The frame ──────────────────────────────────────────────────────────── */
+#app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: var(--rail-w) 1fr;
+  height: 100%;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  border-right: 1px solid var(--stroke);
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--accent), var(--accent-2));
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  box-shadow: 0 10px 26px -12px rgba(var(--accent-rgb), 0.8);
+  flex: none;
+  margin-bottom: 6px;
+}
+
+.rail-btn {
+  width: 64px;
+  padding: 9px 4px 7px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mute);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition:
+    background 0.18s var(--ease),
+    color 0.18s var(--ease),
+    transform 0.22s var(--spring),
+    border-color 0.18s var(--ease);
+  flex: none;
+}
+.rail-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rail-btn:hover {
+  color: var(--text);
+  background: var(--glass-2);
+  transform: translateY(-1px);
+}
+.rail-btn[aria-current="page"] {
+  color: var(--text);
+  background: var(--glass-hi);
+  border-color: var(--stroke-2);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.25);
+}
+.rail-btn[aria-current="page"] svg {
+  color: var(--accent);
+}
+.rail-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.rail-sep {
+  width: 40px;
+  height: 1px;
+  background: var(--hairline);
+  flex: none;
+  margin: 4px 0;
+}
+.rail-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── The page ───────────────────────────────────────────────────────────── */
+/* ⚠️⚠️ `min-height: 0` — AND IT IS THE WHOLE LAYOUT, NOT A TIDY-UP.
+   A grid item's default `min-height` is `auto`, which is "as tall as my
+   content", so `.page` grew to 1,354px inside a 720px track and the `.scroll`
+   below it never became a scrollport at all. The symptom is not a visible
+   overflow — `body` is `overflow: hidden`, so it CLIPS — it is that the WINDOW
+   scrolls instead of the content area: the rail and the top bar slide off the
+   top, and `render()`'s scroll restore writes to a container that has nothing
+   to scroll. Measured: `#scroll.clientHeight === #scroll.scrollHeight === 3936`
+   and `window.scrollY === 634`. */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--stroke);
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  flex: none;
+}
+/* ⚠️ THE NAME AND THE FILE PATH BOTH TRUNCATE. A school's name plus
+   "Ashgrove High School 2026-27.timetable.json · unsaved changes" is 60-odd
+   characters, and at 375px it wrapped to SEVEN lines and pushed the grid off
+   the bottom of the phone. `min-width: 0` is what lets a flex child shrink
+   below its content at all — without it `text-overflow` never fires. */
+.topbar > div:first-child {
+  min-width: 0;
+}
+.topbar h1 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar .sub {
+  color: var(--text-mute);
+  font-size: 12px;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar .spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+/* ⚠️⚠️ NO `scroll-behavior: smooth` HERE, AND THAT IS A BUG FIX RATHER THAN A
+   preference. Every write redraws the page (see `dom.ts`) and `render()`
+   restores this container's `scrollTop` onto the FRESH element — under smooth
+   behaviour that assignment ANIMATES from 0, so a school typing a class code
+   would watch the page glide back into place after every keystroke. Measured:
+   an assignment to `scrollTop` read back as 0 for the whole animation. */
+.scroll {
+  flex: 1;
+  /* ⚠️ THE SAME RULE ONE LEVEL DOWN — a FLEX item's `min-height` is `auto`
+     too, so without this the scrollport is as tall as the grid inside it. */
+  min-height: 0;
+  overflow: auto;
+  padding: 22px;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 1180px;
+  margin: 0 auto;
+  animation: fadeUp 0.34s var(--ease) both;
+}
+.stack.wide {
+  max-width: none;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+.card {
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+}
+.card > h2 {
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 3px;
+}
+.card > .hint {
+  color: var(--text-dim);
+  font-size: 12.5px;
+  margin: 0 0 16px;
+  max-width: 76ch;
+}
+.card.flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.row.tight {
+  gap: 6px;
+}
+
+/* ── Fields ─────────────────────────────────────────────────────────────── */
+label.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+label.field > .note {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 0;
+}
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+input[type="password"],
+select,
+textarea {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--glass-2);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  padding: 8px 11px;
+  width: 100%;
+  transition:
+    border-color 0.16s var(--ease),
+    background 0.16s var(--ease),
+    box-shadow 0.16s var(--ease);
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: rgba(var(--accent-rgb), 0.65);
+  background: var(--glass-hi);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-mute);
+}
+select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 30px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% + 1px),
+    calc(100% - 11px) calc(50% + 1px);
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
+select option {
+  background: var(--bg-1);
+  color: var(--text);
+}
+input[type="color"] {
+  width: 46px;
+  height: 34px;
+  padding: 3px;
+  border-radius: 11px;
+  border: 1px solid var(--stroke);
+  background: var(--glass-2);
+  cursor: pointer;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.btn {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  border-radius: 13px;
+  padding: 8px 15px;
+  border: 1px solid var(--stroke);
+  background: var(--glass-2);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  transition:
+    transform 0.22s var(--spring),
+    background 0.16s var(--ease),
+    border-color 0.16s var(--ease),
+    opacity 0.16s var(--ease);
+}
+.btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.btn:hover:not(:disabled) {
+  background: var(--glass-hi);
+  border-color: var(--stroke-2);
+  transform: translateY(-1px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.btn.primary {
+  background: linear-gradient(135deg, var(--accent), #8b6ee0);
+  border-color: transparent;
+  color: var(--on-accent);
+  box-shadow: 0 12px 28px -14px rgba(var(--accent-rgb), 0.9);
+}
+.btn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent), #9a7ae8);
+}
+.btn.go {
+  background: linear-gradient(135deg, var(--accent-2), #2bb583);
+  border-color: transparent;
+  color: #06281c;
+  box-shadow: 0 12px 28px -14px rgba(var(--accent-2-rgb), 0.85);
+}
+.btn.ghost {
+  background: transparent;
+}
+.btn.danger {
+  color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.3);
+}
+.btn.danger:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.12);
+}
+.btn.sm {
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  gap: 5px;
+}
+.btn.icon {
+  padding: 6px;
+  border-radius: 10px;
+}
+.btn.icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Segmented control ──────────────────────────────────────────────────── */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: var(--glass);
+}
+.seg button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: 11px;
+  padding: 6px 13px;
+  background: transparent;
+  color: var(--text-mute);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+.seg button:hover {
+  color: var(--text);
+}
+.seg button[aria-pressed="true"] {
+  background: var(--glass-hi);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--stroke-2);
+}
+
+/* ── Switch ─────────────────────────────────────────────────────────────── */
+.switch {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-top: 1px solid var(--hairline);
+}
+.switch:first-of-type {
+  border-top: none;
+}
+.switch .knob {
+  flex: none;
+  width: 40px;
+  height: 23px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke-2);
+  background: var(--glass-2);
+  position: relative;
+  cursor: pointer;
+  transition:
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+  margin-top: 1px;
+  padding: 0;
+}
+.switch .knob::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition:
+    transform 0.26s var(--spring),
+    background 0.2s var(--ease);
+}
+.switch .knob[aria-checked="true"] {
+  background: linear-gradient(135deg, var(--accent), #8b6ee0);
+  border-color: transparent;
+}
+.switch .knob[aria-checked="true"]::after {
+  transform: translateX(17px);
+  background: var(--on-accent);
+}
+.switch .knob:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.25);
+}
+.switch .lab {
+  font-size: 13px;
+  font-weight: 650;
+}
+.switch .why {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  max-width: 74ch;
+}
+.switch .cost {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  margin-top: 5px;
+  max-width: 74ch;
+  padding-left: 9px;
+  border-left: 2px solid var(--hairline);
+}
+
+/* ── Notices ────────────────────────────────────────────────────────────── */
+.notice {
+  border: 1px solid var(--stroke);
+  border-left: 3px solid var(--text-mute);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  background: var(--glass);
+}
+.notice.warn {
+  border-left-color: var(--warn);
+}
+.notice.bad {
+  border-left-color: var(--danger);
+  color: var(--text);
+}
+.notice.good {
+  border-left-color: var(--ok);
+}
+.notice b {
+  color: var(--text);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: var(--glass-2);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.pill.warn {
+  color: var(--warn);
+  border-color: rgba(243, 201, 105, 0.3);
+  background: rgba(243, 201, 105, 0.1);
+}
+.pill.crit {
+  color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.3);
+  background: rgba(255, 107, 107, 0.1);
+}
+.pill.prog {
+  color: var(--accent-2);
+  border-color: rgba(var(--accent-2-rgb), 0.3);
+  background: rgba(var(--accent-2-rgb), 0.1);
+}
+.pill.on {
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.35);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+/* ── Lists / tables ─────────────────────────────────────────────────────── */
+table.list {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+table.list th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--stroke);
+  background: var(--glass);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+}
+table.list td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: middle;
+}
+table.list tr:last-child td {
+  border-bottom: none;
+}
+table.list tbody tr:hover td {
+  background: var(--glass);
+}
+table.list td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+table.list td.act {
+  text-align: right;
+  white-space: nowrap;
+}
+/* ⚠️ THE ARROW PAIR MUST NOT WRAP. Two 26px icon buttons and a 6px gap do not
+   fit a narrow "Order" column once the cell's own padding is off, and `.row`
+   wraps by default — so they stacked vertically and made every row of the Day
+   and Rooms tables 60px tall. Stated once here rather than inline at four call
+   sites, where the next person to add a third control would undo it silently. */
+table.list .row.tight {
+  flex-wrap: nowrap;
+}
+table.list input,
+table.list select {
+  padding: 5px 9px;
+  border-radius: 9px;
+  font-size: 12.5px;
+}
+.tablewrap {
+  overflow: auto;
+  max-height: 62vh;
+}
+
+.empty {
+  text-align: center;
+  padding: 34px 20px;
+  color: var(--text-mute);
+  font-size: 13px;
+}
+.empty b {
+  color: var(--text-dim);
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+#toasts {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  max-width: 420px;
+  border: 1px solid var(--stroke-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-1);
+  color: var(--text);
+  padding: 11px 15px;
+  font-size: 12.5px;
+  box-shadow: var(--shadow);
+  animation: pop 0.34s var(--spring) both;
+  border-left: 3px solid var(--accent);
+}
+.toast.bad {
+  border-left-color: var(--danger);
+}
+.toast.good {
+  border-left-color: var(--ok);
+}
+
+/* ── Modal ──────────────────────────────────────────────────────────────── */
+#modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 4, 10, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+#modal.open {
+  display: grid;
+}
+#modal .sheet {
+  width: min(560px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  border: 1px solid var(--stroke-2);
+  border-radius: var(--radius);
+  background: var(--bg-1);
+  box-shadow: var(--shadow);
+  padding: 22px 24px;
+  animation: pop 0.3s var(--spring) both;
+}
+#modal h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+#modal .hint {
+  color: var(--text-dim);
+  font-size: 12.5px;
+  margin: 0 0 16px;
+}
+#modal .acts {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+/* ── Small type helpers ─────────────────────────────────────────────────── */
+.mut {
+  color: var(--text-mute);
+}
+.dim {
+  color: var(--text-dim);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.tiny {
+  font-size: 11px;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+a {
+  color: var(--accent);
+  text-decoration-color: rgba(var(--accent-rgb), 0.4);
+  text-underline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ⭐ THE GRID FRAME — the paper the timetable is printed on
+   ══════════════════════════════════════════════════════════════════════════
+   ⚠️ EVERY COLOUR IN THE TABLE ITSELF IS SET INLINE FROM THE ENGINE. What is
+   here is the FRAME: the margin either side (the source's empty columns A and
+   L) which sits on the element WRAPPING the scroller and never on the scroller
+   — a sticky inset resolves against the scroll container's own box, so padding
+   on the scroller is padding the spine slides underneath. */
+.gridframe {
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--paper);
+}
+.gridscroll {
+  overflow: auto;
+  max-height: 74vh;
+}
+table.tt {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  margin: 0 auto;
+  font-size: 11px;
+}
+/* ⚠️⚠️ NO `display: flex` ON A `<th>` OR `<td>`, EVER. It takes the cell OUT
+   of the table formatting context, and the whole grid collapses into a single
+   stacked column — `colspan`, `rowspan` and the fixed column widths all stop
+   meaning anything. (Measured: it is exactly what the first build of this file
+   did.) Two lines in one cell are two BLOCK spans, centred by the cell. */
+table.tt th,
+table.tt td {
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+table.tt th {
+  font-weight: inherit;
+}
+table.tt .cellpad {
+  padding: 2px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The admin's field labels sit against the first room, exactly where column C
+   of the workbook puts them. */
+table.tt .cellpad.right {
+  text-align: right;
+}
+table.tt .cellpad > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+table.tt input.cell {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 0 4px;
+  transition: none;
+}
+table.tt input.cell:focus-visible {
+  outline: 2px solid var(--cell-ring);
+  outline-offset: -2px;
+  background: transparent;
+  box-shadow: none;
+}
+table.tt input.cell:hover:not(:disabled) {
+  outline: 1px solid var(--cell-ring);
+  outline-offset: -1px;
+}
+table.tt input.cell:disabled {
+  cursor: default;
+  -webkit-text-fill-color: currentColor;
+  opacity: 1;
+}
+
+/* ── Legend ─────────────────────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.legend .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 9px 3px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: var(--glass);
+  color: var(--text-dim);
+}
+.legend .sw {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  flex: none;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+/* ── Week strip ─────────────────────────────────────────────────────────── */
+.weeks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+}
+.weekcard {
+  text-align: left;
+  font: inherit;
+  border: 1px solid var(--stroke);
+  border-radius: 13px;
+  background: var(--glass);
+  padding: 9px 11px;
+  cursor: pointer;
+  transition:
+    background 0.16s var(--ease),
+    border-color 0.16s var(--ease),
+    transform 0.22s var(--spring);
+  color: inherit;
+}
+.weekcard:hover {
+  background: var(--glass-2);
+  transform: translateY(-1px);
+}
+.weekcard[aria-pressed="true"] {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+.weekcard .wk {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.weekcard .dt {
+  font-size: 10.5px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+
+@media (max-width: 760px) {
+  #app {
+    grid-template-columns: 68px 1fr;
+  }
+  .topbar {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+  .topbar h1 {
+    font-size: 16px;
+  }
+  /* ⭐ ICONS ALONE IN THE TOP BAR. Three labelled buttons at 375px left the
+     school's own name showing as "A…". The label stays in the accessibility
+     tree — `.sr`, not `display: none` — and `title` puts it back on hover. */
+  .topbar .btn .lab {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .topbar .btn {
+    padding: 8px;
+    gap: 0;
+  }
+  /* ⭐ THE FILE PATH GOES, NOT THE STATE. "unsaved changes" is the half a
+     school has to act on; the filename is on the Save dialog anyway. */
+  .topbar .sub {
+    font-size: 11px;
+  }
+  .scroll {
+    padding: 14px;
+  }
+  .card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+  .rail-btn {
+    width: 56px;
+    font-size: 9.5px;
+  }
+}

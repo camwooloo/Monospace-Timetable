@@ -1,0 +1,320 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  RELEASE — one bundle, two downloads
+# ══════════════════════════════════════════════════════════════════════════
+#
+# Tag `vX.Y.Z` and this builds the two things a school downloads and attaches
+# both to the release:
+#
+#   timetable.html   the single self-contained document — needs nothing
+#   timetable.exe    the portable Windows program, which EMBEDS that document
+#
+# ⭐ THE RULE THAT SHAPES THE WHOLE FILE: THE FRONT-END IS BUILT **ONCE**.
+# The `bundle` job builds it on Linux and uploads it; the `windows` job
+# downloads that exact file and compiles it into the binary. It is never
+# rebuilt on the Windows runner. If the `.html` and the `.exe` were ever built
+# by two jobs — "temporarily", while something else was sorted out — they
+# would drift permanently, and the drift would surface as a school reporting a
+# bug that reproduces in one download and not the other.
+#
+# The `.exe` is built on `windows-latest` rather than cross-compiled. A
+# cross-build proves the thing links; it does not prove it launches, and
+# launching on Windows is the entire point of shipping an `.exe`.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  # So the build can be exercised without cutting a release. Nothing is
+  # attached to anything unless the ref is a tag — see the `release` job.
+  workflow_dispatch:
+
+# ⚠️ READ AT THE TOP, WRITE ONLY ON THE JOB THAT PUBLISHES. `test` and
+# `bundle` run `npm install`, which executes install scripts from the whole
+# dependency tree; `windows` runs a cargo build script. Handing any of them a
+# token that can push to this repository and cut releases is exactly the
+# supply-chain shape that matters for a project whose output is an UNSIGNED
+# binary a school is told to click through a SmartScreen warning to run. Only
+# the `release` job talks to the releases API, so only it gets write.
+permissions:
+  contents: read
+
+# ── ⭐ THE CROSS-PACKAGE CONTRACT, IN ONE PLACE ───────────────────────────
+# These are the only things this workflow assumes about the rest of the
+# repository. If a path or a name changes it changes HERE (and in the matching
+# block in ci.yml) and nowhere else. Every step that depends on one fails
+# loudly, by name, rather than producing a half-built release.
+env:
+  # Where apps/tool's build writes the document. ⚠️ apps/shell/build.rs has
+  # its own default for this path and it must agree — see the error message
+  # in .github/actions/build-html/action.yml, which names all three places.
+  HTML_ARTEFACT: apps/tool/dist/timetable.html
+  # The directory holding the desktop crate's Cargo.toml.
+  RUST_MANIFEST_DIR: apps/shell
+  # ⚠️ THE UPDATER FINDS ITS DOWNLOAD BY LOOKING FOR THE RELEASE ASSET ENDING
+  # `.exe`. This name is load-bearing, and there must be exactly one such
+  # asset — the `release` job asserts both.
+  RELEASE_EXE_NAME: timetable.exe
+  RELEASE_HTML_NAME: timetable.html
+  NODE_VERSION: "22"
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────
+  # Nothing is built, and certainly nothing is published, without this
+  # passing. The fixture gate compares the workbook we generate to reference
+  # bytes produced by Monospace's own writer — it is the only proof that the
+  # free tool and the paid product make the same spreadsheet.
+  # ────────────────────────────────────────────────────────────────────────
+  test:
+    name: Engine fixture gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install the workspace
+        run: npm install
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # ⚠️ THE GATE HAS TO PROVE IT RAN. Root `test` is `npm run test
+      # --workspaces --if-present`, so a workspace that loses its `test`
+      # script simply stops being tested and the job still goes green — the
+      # one failure this whole file exists to prevent, wearing a tick. The
+      # engine's fixture comparison is the only proof the free tool and the
+      # paid product make the same spreadsheet, so assert it is still wired
+      # up before believing a pass.
+      - name: The gate
+        run: |
+          set -euo pipefail
+          node -e 'if (!require("./packages/engine/package.json").scripts?.test) {
+            console.error("::error::packages/engine has no test script, so the root `npm test` is a green no-op. The fixture gate is NOT running.");
+            process.exit(1);
+          }'
+          npm test
+
+  # ────────────────────────────────────────────────────────────────────────
+  # ⭐ THE ONE BUILD OF THE FRONT-END. Both downloads descend from this job.
+  # ────────────────────────────────────────────────────────────────────────
+  bundle:
+    name: The front-end (built once)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and verify the document
+        uses: ./.github/actions/build-html
+        with:
+          html-path: ${{ env.HTML_ARTEFACT }}
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Name it as it will be downloaded
+        run: |
+          mkdir -p out
+          cp "$HTML_ARTEFACT" "out/$RELEASE_HTML_NAME"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timetable-html
+          path: out/${{ env.RELEASE_HTML_NAME }}
+          if-no-files-found: error
+          retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────────────
+  # The Windows binary. Downloads the document rather than building it.
+  # ────────────────────────────────────────────────────────────────────────
+  windows:
+    name: Windows binary
+    needs: bundle
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the crate is where this workflow says it is
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$RUST_MANIFEST_DIR/Cargo.toml" ]; then
+            echo "::error::No Cargo.toml at $RUST_MANIFEST_DIR"
+            echo "Set RUST_MANIFEST_DIR at the top of this file AND of ci.yml."
+            echo "Cargo.toml files found under the repository:"
+            find . -name Cargo.toml -not -path './target/*' -maxdepth 4 || true
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: timetable-html
+          path: downloaded
+
+      # ⭐ THE HANDOVER. apps/shell/build.rs reads MONOSPACE_TIMETABLE_HTML and
+      # bakes whatever it points at into the exe. This is where the ONE
+      # document the bundle job built is handed to it — nothing is rebuilt.
+      - name: Point the crate at the one document
+        shell: bash
+        run: |
+          set -euo pipefail
+          p="$(cd downloaded && pwd)/$RELEASE_HTML_NAME"
+          test -f "$p"
+          echo "MONOSPACE_TIMETABLE_HTML=$p" >> "$GITHUB_ENV"
+          echo "embedding $(wc -c < "$p" | tr -d ' ') bytes built by the bundle job"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.RUST_MANIFEST_DIR }} -> target
+          key: windows
+
+      # Run on the platform the binary is for, and before the build, so a
+      # failing test cannot produce a downloadable `.exe`.
+      - name: Rust tests
+        working-directory: ${{ env.RUST_MANIFEST_DIR }}
+        run: cargo test --locked
+
+      # ⚠️ RUSTFLAGS is deliberately NOT set here. The static CRT (`-C
+      # target-feature=+crt-static`) lives in apps/shell/.cargo/config.toml;
+      # setting the environment variable would OVERRIDE that file wholesale
+      # and silently drop any other flag it carries.
+      #
+      # `--locked` requires apps/shell/Cargo.lock to be committed, and it must
+      # be: this binary goes to schools and will not be rebuilt often, so the
+      # dependency versions it was built from should be recorded rather than
+      # resolved afresh months later.
+      - name: Build
+        working-directory: ${{ env.RUST_MANIFEST_DIR }}
+        run: cargo build --release --locked
+
+      - name: Collect it under the name the updater looks for
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The crate may later sit in a Cargo workspace rooted at the
+          # repository, in which case `target/` is at the top rather than
+          # beside it. Both are looked at; two candidates is an error, not a
+          # coin toss.
+          mapfile -t found < <(find "$RUST_MANIFEST_DIR/target/release" target/release -maxdepth 1 -name '*.exe' -type f 2>/dev/null | sort -u || true)
+          if [ "${#found[@]}" -eq 0 ]; then
+            echo "::error::cargo build produced no .exe in $RUST_MANIFEST_DIR/target/release or target/release"
+            exit 1
+          fi
+          if [ "${#found[@]}" -gt 1 ]; then
+            echo "::error::More than one .exe was produced, so which one ships is ambiguous:"
+            printf '  %s\n' "${found[@]}"
+            echo "Give the crate one [[bin]], or name the intended one here."
+            exit 1
+          fi
+          mkdir -p out
+          cp "${found[0]}" "out/$RELEASE_EXE_NAME"
+          echo "${found[0]} -> $RELEASE_EXE_NAME ($(wc -c < "out/$RELEASE_EXE_NAME" | tr -d ' ') bytes)"
+
+      # ⚠️ THE TWO SHIPPING FLAGS, READ OUT OF THE BINARY RATHER THAN ASSUMED.
+      # `+crt-static` lives in apps/shell/.cargo/config.toml, which cargo
+      # resolves by CURRENT WORKING DIRECTORY — so it holds only because the
+      # step above sets `working-directory`. Change that to a
+      # `--manifest-path` and the flag is silently dropped, the build stays
+      # green, and the exe starts demanding the VC++ redistributable on the
+      # locked-down PCs least able to install it. `windows_subsystem` is the
+      # same kind of claim: an attribute in main.rs that nothing else checks.
+      # The script reads the PE import table and the subsystem field, so both
+      # are proved against the bytes that ship.
+      - name: Prove the static CRT and the GUI subsystem survived
+        shell: bash
+        run: python "$RUST_MANIFEST_DIR/scripts/check-static-crt.py" "out/$RELEASE_EXE_NAME"
+
+      # ⚠️⚠️ The check that stops a placeholder UI reaching a school. Read the
+      # banner in the action — the failure it catches is completely silent.
+      - name: Prove the exe embeds the real document
+        uses: ./.github/actions/check-embedded
+        with:
+          html: downloaded/${{ env.RELEASE_HTML_NAME }}
+          exe: out/${{ env.RELEASE_EXE_NAME }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timetable-exe
+          path: out/${{ env.RELEASE_EXE_NAME }}
+          if-no-files-found: error
+          retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────────────
+  # Attach both. Only on a tag — `workflow_dispatch` exercises everything
+  # above and stops here.
+  # ────────────────────────────────────────────────────────────────────────
+  release:
+    name: Attach to the release
+    needs: [bundle, windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    # The only job that needs it. See the banner beside the top-level block.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artefacts
+
+      - name: Gather them, and check what the updater will see
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp "artefacts/timetable-exe/$RELEASE_EXE_NAME"   "dist/$RELEASE_EXE_NAME"
+          cp "artefacts/timetable-html/$RELEASE_HTML_NAME" "dist/$RELEASE_HTML_NAME"
+
+          # ⚠️ The updater picks the release asset whose name ends `.exe`.
+          # Two of them and it picks arbitrarily; none and it never updates
+          # anybody again. Both are silent in every other check.
+          exes=$(find dist -maxdepth 1 -name '*.exe' | wc -l | tr -d ' ')
+          if [ "$exes" -ne 1 ]; then
+            echo "::error::$exes assets end in .exe. The updater requires exactly one."
+            ls -la dist
+            exit 1
+          fi
+          ls -la dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/${{ env.RELEASE_EXE_NAME }}
+            dist/${{ env.RELEASE_HTML_NAME }}
+          # A missing download is worse than a failed release: the release page
+          # looks complete and one of the two links is not there.
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          append_body: true
+          # ⚠️ Said on EVERY release, because the person downloading is a school
+          # IT technician meeting an unsigned binary for the first time and the
+          # release page is where they are standing when it happens.
+          body: |
+
+            ---
+
+            ### Which file do I want?
+
+            | | |
+            |---|---|
+            | **`timetable.html`** | Needs **nothing**. Download it, double-click it, it opens in your browser. Works offline. Works on Mac. Start here if you are unsure. |
+            | **`timetable.exe`** | Portable Windows program. Not an installer, no admin rights. |
+
+            ### ⚠️ Windows will warn you about the `.exe`
+
+            You will see **"Windows protected your PC"**. That is expected. Click
+            **More info** → **Run anyway**.
+
+            The program is not code-signed — a certificate costs hundreds of pounds a
+            year and this tool is free. Unsigned means Windows has not seen the file
+            before, not that anything is wrong with it. Before you click through,
+            check you downloaded it yourself from this Releases page and not from an
+            email or a link somebody sent you.
+
+            If your school does not allow unsigned executables, use `timetable.html`.
+            It does exactly the same job.
+
+            Bug reports welcome. There is no SLA — see the README.

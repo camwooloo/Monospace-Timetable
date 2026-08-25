@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    // ⚠️ `noUnusedLocals` IS OFF, AND IT IS NOT LAZINESS. This project
+    // typechecks the ENGINE'S SOURCE along with its own (see `src/engine.ts`),
+    // and that source deliberately declares unused symbols as compiler-checked
+    // assertions — `_TabColoursCoverEveryCycleLength`, `_Conforms`. The engine
+    // is read-only here, so turning the flag on would fail the build on files
+    // this app may not edit.
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    // ⚠️ THE ENGINE'S OWN AMBIENT DECLARATIONS. `src/engine.ts` imports the
+    // engine's SOURCE by relative path (its banner says why), so tsc pulls in
+    // files that deep-import `exceljs/lib/stream/xlsx/workbook-writer.js` and
+    // `node:stream`. The `.d.ts` files that answer both live beside them and
+    // are not reachable from an import, so they are named here.
+    "../../packages/engine/src/types/*.d.ts"
+  ]
+}

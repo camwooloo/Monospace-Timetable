@@ -1,0 +1,32 @@
+{
+  "name": "monospace-timetable",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The timetable workbook generator from Monospace, given away to schools. One engine, two hosts: a single self-contained .html and a portable Windows .exe.",
+  "license": "AGPL-3.0-only",
+  "author": "Cam Wooloo",
+  "homepage": "https://github.com/camwooloo/Monospace-Timetable",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/camwooloo/Monospace-Timetable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/camwooloo/Monospace-Timetable/issues"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build:engine && npm run build:apps",
+    "build:engine": "npm run build --workspace packages/engine",
+    "build:apps": "npm run build --workspace apps --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:engine": "npm run test --workspace packages/engine",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "check": "npm run typecheck && npm run test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
