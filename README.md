@@ -42,6 +42,24 @@ Then **Export**, and you have the workbook.
 
 ---
 
+## Never done this before?
+
+**The app will walk you through it.** Ten steps with Next and Back, and each one
+takes you to the screen it is talking about and points at the control you need —
+so you are doing it as you read it, rather than reading first and doing it after.
+
+![The walkthrough](docs/screenshots/06-walkthrough.png)
+
+Each step also tells you whether that part is finished, and says plainly which
+three are optional — closures, one-off week changes and the colour are all things
+you can export a perfectly good workbook without.
+
+It offers itself the first time you open the app. After that it is in the left
+rail under **Guide**, so it is there again in August when somebody new picks this
+up.
+
+---
+
 ## What you get
 
 One sheet per week for the whole year, plus your templates and a half-term overview.
