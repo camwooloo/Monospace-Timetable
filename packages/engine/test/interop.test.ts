@@ -147,6 +147,10 @@ describe.skipIf(!reachable())("Monospace reads what this tool writes", () => {
         document: unknown;
         derivedValues: number;
         orphanedCells: number;
+        /* ⚠️ Pins whose stored number did not arrive — see the split-deploy
+           test below. Hand-mirrored like the rest of this shape, so it has to
+           be widened here whenever the mapper's result is. */
+        pinsUnreadable: number;
       };
     };
 
