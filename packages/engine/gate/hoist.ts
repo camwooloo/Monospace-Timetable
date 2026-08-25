@@ -3,14 +3,14 @@
  *  ⭐⭐ PROVING THE `CT_Worksheet` CHECK ACTUALLY CHECKS SOMETHING
  * ══════════════════════════════════════════════════════════════════════════
  *
- * `fixture.test.ts` asserts that every sheet part obeys `CT_Worksheet`'s
- * element sequence, and it passes. ⚠️ A VALIDATOR THAT HAS ONLY EVER PASSED IS
- * A VALIDATOR NOBODY HAS TESTED — a scanner with an off-by-one in its depth
+ * The gate asserts that every sheet part obeys `CT_Worksheet`'s element
+ * sequence, and it passes. ⚠️ A VALIDATOR THAT HAS ONLY EVER PASSED IS A
+ * VALIDATOR NOBODY HAS TESTED — a scanner with an off-by-one in its depth
  * tracking, or a canonical order with the wrong element in it, passes exactly
  * as loudly as a correct one.
  *
- * So this test breaks the thing the check exists to catch, and requires the
- * check to notice.
+ * So this breaks the thing the check exists to catch, and requires the check
+ * to notice.
  *
  * ── ⭐ WHAT IS BROKEN, AND HOW ───────────────────────────────────────────
  * `hoistSheetProtection()` in the writer moves `<sheetProtection>` from where
@@ -30,24 +30,25 @@
  *
  * ⭐ SO THE WRAPPER IS NEUTRALISED INSTEAD, by giving the prototype an
  * accessor whose SETTER SWALLOWS THE ASSIGNMENT. The hoist reads both methods
- * (both are functions, so its guard passes), builds its wrapper, assigns
- * it — and the assignment goes nowhere. Everything else is untouched: the
- * library writes `<sheetProtection>` in its own late position, exactly as it
- * would have without the fix. That is the real regression, reproduced.
+ * (both are functions, so its guard passes), builds its wrapper, assigns it —
+ * and the assignment goes nowhere. Everything else is untouched: the library
+ * writes `<sheetProtection>` in its own late position, exactly as it would
+ * have without the fix. That is the real regression, reproduced.
+ *
+ * ⚠️ AND IT PATCHES A SHARED PROTOTYPE, so the restore is not optional and is
+ * not trusted either — `withHoistDisabled` puts the original back in a
+ * `finally` AND the caller proves the prototype is the original function
+ * again. Under vitest a leaked patch would have poisoned another test file;
+ * here it would poison every check that runs afterwards, which is most of
+ * them.
  */
 
-import { afterEach, expect, test } from "vitest";
 import WorksheetWriter from "exceljs/lib/stream/xlsx/worksheet-writer.js";
 
-import { buildTimetableModel } from "../src/model/buildModel";
-import { bufferTimetableWorkbook } from "../src/workbook/timetableWorkbook";
-import {
-  FIXTURE_NOW,
-  FIXTURE_PASSWORD,
-  makeFixtureDocument,
-} from "./fixtures/schoolDocument";
+import { equal, ok } from "./harness";
+import { sequenceViolations, worksheetChildren, type SequenceViolation } from "./ctWorksheet";
 import { readZip } from "./zip";
-import { sequenceViolations, worksheetChildren } from "./ctWorksheet";
+import { generateFresh, FULL_CASE } from "./workbooks";
 
 /**
  * 2 cycle-week templates + 38 teaching weeks.
@@ -58,15 +59,21 @@ import { sequenceViolations, worksheetChildren } from "./ctWorksheet";
  * three sheets that make "every sheet is hidden" — the state Excel refuses to
  * open a workbook in — unreachable by construction.
  */
-const PROTECTED_GRID_SHEETS = 40;
+export const PROTECTED_GRID_SHEETS = 40;
 
-const prototype = WorksheetWriter.prototype as unknown as Record<
-  string,
-  unknown
->;
+const prototype = WorksheetWriter.prototype as unknown as Record<string, unknown>;
 const original = prototype._writeCloseSheetData;
 
-function disableHoist(): void {
+export type SheetPart = { name: string; xml: string };
+
+export function sheetPartsOf(bytes: Uint8Array): SheetPart[] {
+  return readZip(bytes)
+    .filter((m) => /^xl\/worksheets\/sheet\d+\.xml$/.test(m.name))
+    .map((m) => ({ name: m.name, xml: new TextDecoder().decode(m.content) }));
+}
+
+/** Generate the full case with the hoist neutralised, then put it back. */
+export async function withHoistDisabled(): Promise<SheetPart[]> {
   Object.defineProperty(prototype, "_writeCloseSheetData", {
     configurable: true,
     get() {
@@ -81,48 +88,40 @@ function disableHoist(): void {
       /* swallowed */
     },
   });
+  try {
+    /* ⚠️ NEVER THE CACHE. These are different bytes for the same case name. */
+    return sheetPartsOf(await generateFresh(FULL_CASE));
+  } finally {
+    Object.defineProperty(prototype, "_writeCloseSheetData", {
+      configurable: true,
+      writable: true,
+      value: original,
+    });
+  }
 }
 
-afterEach(() => {
-  Object.defineProperty(prototype, "_writeCloseSheetData", {
-    configurable: true,
-    writable: true,
-    value: original,
-  });
-});
-
-async function sheetPartsOf(): Promise<Array<{ name: string; xml: string }>> {
-  const built = buildTimetableModel({
-    document: makeFixtureDocument(),
-    now: FIXTURE_NOW,
-    generatedBy: "Fixture",
-    password: FIXTURE_PASSWORD,
-  });
-  if (!built.ok) throw new Error(built.error);
-  const bytes = await bufferTimetableWorkbook(built.model);
-  return readZip(bytes)
-    .filter((m) => /^xl\/worksheets\/sheet\d+\.xml$/.test(m.name))
-    .map((m) => ({ name: m.name, xml: new TextDecoder().decode(m.content) }));
-}
-
-test("with the hoist disabled, the sequence check reports exactly 40 violations", async () => {
-  disableHoist();
-  const parts = await sheetPartsOf();
-
-  const violations = parts.flatMap((p) => sequenceViolations(p.name, p.xml));
-
-  console.log(
-    `\n  hoist DISABLED: ${violations.length} CT_Worksheet violations across ${parts.length} sheet parts` +
-      (violations[0] ? `\n    e.g. ${violations[0].part}: ${violations[0].message}` : ""),
+/** ⚠️ Proved, not assumed. See the banner. */
+export function assertHoistRestored(): void {
+  ok(
+    prototype._writeCloseSheetData === original,
+    "the sabotage was restored — WorksheetWriter.prototype._writeCloseSheetData is the library's own method again",
   );
+}
 
-  expect(violations.length).toBe(PROTECTED_GRID_SHEETS);
+/** With the hoist off, EVERY protected grid sheet must be reported. */
+export function assertSabotageDetected(parts: SheetPart[]): SequenceViolation[] {
+  const violations = parts.flatMap((p) => sequenceViolations(p.name, p.xml));
+  equal(
+    violations.length,
+    PROTECTED_GRID_SHEETS,
+    `CT_Worksheet violations with the hoist disabled, across ${parts.length} sheet parts`,
+  );
 
   /* ⭐ AND IT IS THE RIGHT VIOLATION, not 40 of something else. Every one must
      be `<sheetProtection>` landing after an element the schema puts later —
      which is the exact defect the hoist exists to prevent. */
   for (const v of violations) {
-    expect(v.element).toBe("sheetProtection");
+    equal(v.element, "sheetProtection", `${v.part}: the element reported out of sequence`);
   }
 
   /**
@@ -135,17 +134,18 @@ test("with the hoist disabled, the sequence check reports exactly 40 violations"
    * NEVER `mergeCells` — the check names the LAST element the schema puts
    * earlier, and conditional formatting is later in the sequence than merges.
    * This assertion was first written as both, by reasoning from the banner
-   * rather than from the output, and the test said so. Every grid sheet here
+   * rather than from the output, and the check said so. Every grid sheet here
    * has conditional formatting because `linkTemplates` is on, which is what
    * makes the answer uniform.
    */
-  const afters = new Set(violations.map((v) => v.after));
-  expect([...afters]).toEqual(["conditionalFormatting"]);
-});
+  const afters = [...new Set(violations.map((v) => v.after))];
+  equal(afters.length, 1, "the elements <sheetProtection> was reported after");
+  equal(afters[0], "conditionalFormatting", "the element <sheetProtection> lands after");
+  return violations;
+}
 
-test("with the hoist enabled, sheetProtection sits immediately after sheetData", async () => {
-  const parts = await sheetPartsOf();
-
+/** With the hoist on, the element sits in the one place the schema allows. */
+export function assertHoisted(parts: SheetPart[]): number {
   let protectedSheets = 0;
   for (const p of parts) {
     const children = worksheetChildren(p.xml);
@@ -156,21 +156,21 @@ test("with the hoist enabled, sheetProtection sits immediately after sheetData",
        between `sheetData` and `sheetProtection`, and this writer emits none,
        so the correct position here is exactly adjacent. Asserting adjacency
        rather than mere ordering is what would catch the element drifting one
-       slot and still passing the ordering test. */
-    expect(children[at - 1], `${p.name}: element before <sheetProtection>`).toBe(
-      "sheetData",
-    );
+       slot and still passing the ordering check. */
+    equal(children[at - 1], "sheetData", `${p.name}: element before <sheetProtection>`);
     /* And there is exactly one — the hoist nulls the model so the library's
        own late call renders nothing rather than a second element. */
-    expect(
+    equal(
       children.filter((c) => c === "sheetProtection").length,
+      1,
       `${p.name}: number of <sheetProtection> elements`,
-    ).toBe(1);
+    );
   }
-
-  console.log(
-    `\n  hoist ENABLED: ${protectedSheets} sheets carry <sheetProtection>, all immediately after </sheetData>`,
+  equal(protectedSheets, PROTECTED_GRID_SHEETS, "sheets carrying <sheetProtection>");
+  equal(
+    parts.flatMap((p) => sequenceViolations(p.name, p.xml)).length,
+    0,
+    "CT_Worksheet violations with the hoist enabled",
   );
-  expect(protectedSheets).toBe(PROTECTED_GRID_SHEETS);
-  expect(parts.flatMap((p) => sequenceViolations(p.name, p.xml))).toEqual([]);
-});
+  return protectedSheets;
+}

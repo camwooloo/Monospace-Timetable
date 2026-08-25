@@ -2,8 +2,8 @@
 #  CI — what must be true on every push
 # ══════════════════════════════════════════════════════════════════════════
 #
-# ⭐ THE JOB THAT MATTERS IS `engine`. It runs the fixture gate: the workbook
-# this repository generates is compared, member by member on the raw
+# ⭐ THE JOB THAT MATTERS IS `engine`. Its last step is the fixture gate: the
+# workbook this repository generates is compared, member by member on the raw
 # compressed bytes, against reference `.xlsx` files produced by MONOSPACE'S
 # OWN WRITER and committed to `packages/engine/fixtures/`.
 #
@@ -13,6 +13,19 @@
 # most of it would not show up in a screenshot either. If this job goes red,
 # the workbook moved, and somebody has to say why before the fixtures are
 # regenerated.
+#
+# ⚠️ THE GATE IS `npm run gate`, NOT `npm test`, AND THAT SPLIT IS LOAD-BEARING.
+# `worksheet.protect()` runs 100,000 SHA-512 rounds synchronously, once per
+# sheet, 40 sheets to a workbook — so under vitest the reporter RPC starved and
+# a run in which EVERY TEST PASSED still exited 1 with
+# `[vitest-worker]: Timeout calling "onTaskUpdate"`. It passed on the machine
+# the fixtures were made on and failed here, purely because this runner is
+# slower, which is the worst shape a failure can take. The gate is now a plain
+# Node program with no reporter and no IPC, so it has no channel to time out;
+# `npm test` keeps the light unit tests, which are seconds.
+#
+# ⚠️ THEREFORE `npm test` GOING GREEN IS NO LONGER PROOF OF ANYTHING ABOUT THE
+# BYTES. Both are run below, and both are checked to still exist first.
 #
 # The other two jobs cover the hosts: that the document is still ONE
 # self-contained file, and that the Windows binary still compiles, passes its
@@ -49,6 +62,17 @@ jobs:
   engine:
     name: Engine fixture gate
     runs-on: ubuntu-latest
+    # ⚠️ A WEDGED GATE MUST NOT BECOME A SIX-HOUR JOB. GitHub's default limit
+    # is six hours, and the gate is now a long-running plain Node program: two
+    # `vm` sandbox runs of ~30 s each on the machine the fixtures were made on,
+    # around an esbuild service that is a CHILD PROCESS. `gate/run.ts` keeps a
+    # watchdog for the handle that outlives a FINISHED run — that is a real bug
+    # it has already had — but nothing inside the gate can fire for a step that
+    # never resolves at all. Without this line that failure looks like a
+    # six-hour timeout on a job whose log stops mid-report, which is a worse
+    # version of the flake this whole split removed. The whole job measures
+    # well under five minutes; thirty is headroom, not a target.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -64,23 +88,71 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # Runs the committed-fixture comparison, the live comparison when a
-      # Monospace checkout is present (it is not, here — that is the point of
-      # committing the bytes), the browser bundle executed in a `vm` with only
-      # browser globals, the CT_Worksheet element-sequence check, and the
-      # class-colour palette pin.
-      #
-      # ⚠️ And it checks that it is still there to run: root `test` is
-      # `--workspaces --if-present`, which turns a workspace that has lost its
-      # `test` script into a silent pass. Same guard as release.yml.
-      - name: The gate — our bytes against Monospace's
+      # ⚠️ BOTH SCRIPTS HAVE TO PROVE THEY STILL EXIST. Root `test` is
+      # `npm run test --workspaces --if-present`, which turns a workspace that
+      # has lost its `test` script into a silent PASS — the one failure this
+      # whole file exists to prevent, wearing a tick. `gate` is named with
+      # `--workspace` and no `--if-present`, so npm errors on its own if it
+      # goes missing, but it is asserted here too because the message npm
+      # prints does not say what was lost. Same guard as release.yml.
+      - name: Check the gate is still wired up
         run: |
           set -euo pipefail
-          node -e 'if (!require("./packages/engine/package.json").scripts?.test) {
-            console.error("::error::packages/engine has no test script, so the root `npm test` is a green no-op. The fixture gate is NOT running.");
-            process.exit(1);
-          }'
-          npm test
+          node -e '
+            const pkg = require("./packages/engine/package.json").scripts ?? {};
+            const root = require("./package.json").scripts ?? {};
+            let bad = false;
+            if (!pkg.test) { console.error("::error::packages/engine has no `test` script, so the root `npm test` is a green no-op."); bad = true; }
+            if (!pkg.gate) { console.error("::error::packages/engine has no `gate` script. THE FIXTURE GATE IS NOT RUNNING, so our bytes are no longer compared against Monospace."); bad = true; }
+            if (!root.gate) { console.error("::error::the root package.json has no `gate` script, so the step below runs nothing."); bad = true; }
+            if (bad) process.exit(1);
+          '
+
+      # Seconds. The model builder's rules, the document reader, the provenance
+      # pins against Monospace's source and the source-hygiene checks. Run
+      # before the gate because a model regression EXPLAINS a byte difference,
+      # and finding out in 15 s beats finding out in four minutes.
+      - name: The light suite
+        run: npm test
+
+      # ⚠️ THE GATE'S LAST CHECK IMPORTS `dist/`, and it FAILS rather than skips
+      # when `dist/` is absent on CI (`gate/run.ts` looks at $CI). That check
+      # exists because `tsc` emits extensionless relative specifiers, Node's ESM
+      # loader refuses them, and the published package once built cleanly and
+      # could not be imported at all. Drop this step and the gate says so.
+      - name: Build the package, so the published artefact is checked too
+        run: npm run build --workspace packages/engine
+
+      # ⭐ THE GATE. Committed-fixture comparison for both writer paths, the
+      # CT_Worksheet element-sequence check, the sheetProtection hoist proved
+      # both ways, the class-colour palette pin, the browser bundle EXECUTED in
+      # a `vm` with only browser globals — unminified and minified — and the
+      # published `dist/`. The live comparison against a Monospace checkout
+      # reports itself SKIPPED here, by name, because there is no checkout on a
+      # public runner; that is the point of committing the bytes.
+      - name: ⭐ The gate — our bytes against Monospace's
+        run: |
+          set -euo pipefail
+          npm run gate 2>&1 | tee gate.log
+
+      # ⭐ THE NUMBERS, WHERE SOMEBODY WILL SEE THEM. "Passed" on its own says
+      # nothing about what was checked, and nobody opens the log on a green run.
+      - name: Put the gate's report on the job summary
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ ! -f gate.log ]; then exit 0; fi
+          {
+            echo "### The fixture gate"
+            echo
+            echo "<details><summary>full report</summary>"
+            echo
+            echo '```'
+            cat gate.log
+            echo '```'
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ────────────────────────────────────────────────────────────────────────
   # The `.html` download: still one file, still needing nothing.
@@ -88,6 +160,7 @@ jobs:
   document:
     name: Self-contained document
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -120,6 +193,9 @@ jobs:
   windows:
     name: Windows binary
     runs-on: windows-latest
+    # Longer than the others on purpose: a cold `Swatinem/rust-cache` means a
+    # full release build with link-time optimisation, which is minutes.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 

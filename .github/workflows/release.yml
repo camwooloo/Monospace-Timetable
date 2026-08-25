@@ -64,10 +64,22 @@ jobs:
   # passing. The fixture gate compares the workbook we generate to reference
   # bytes produced by Monospace's own writer — it is the only proof that the
   # free tool and the paid product make the same spreadsheet.
+  #
+  # ⚠️ THE GATE IS `npm run gate`, NOT `npm test`. It is a plain Node program,
+  # deliberately: `worksheet.protect()` runs 100,000 SHA-512 rounds
+  # synchronously, once per sheet, 40 sheets to a workbook, and under a test
+  # runner that starved the reporter RPC and killed a run in which every test
+  # had passed. `npm test` still runs, and still matters, but it no longer
+  # says anything about the bytes. KEEP THE TWO STEPS AND THE GUARD — this
+  # block is deliberately identical to the `engine` job in ci.yml.
   # ────────────────────────────────────────────────────────────────────────
   test:
     name: Engine fixture gate
     runs-on: ubuntu-latest
+    # ⚠️ Kept identical to ci.yml's `engine` job — read the banner there. A
+    # gate that wedges must fail in minutes rather than hold a release open
+    # for GitHub's six-hour default with its log stopped mid-report.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -88,16 +100,50 @@ jobs:
       # script simply stops being tested and the job still goes green — the
       # one failure this whole file exists to prevent, wearing a tick. The
       # engine's fixture comparison is the only proof the free tool and the
-      # paid product make the same spreadsheet, so assert it is still wired
-      # up before believing a pass.
-      - name: The gate
+      # paid product make the same spreadsheet, so assert BOTH scripts are
+      # still wired up before believing a pass.
+      - name: Check the gate is still wired up
         run: |
           set -euo pipefail
-          node -e 'if (!require("./packages/engine/package.json").scripts?.test) {
-            console.error("::error::packages/engine has no test script, so the root `npm test` is a green no-op. The fixture gate is NOT running.");
-            process.exit(1);
-          }'
-          npm test
+          node -e '
+            const pkg = require("./packages/engine/package.json").scripts ?? {};
+            const root = require("./package.json").scripts ?? {};
+            let bad = false;
+            if (!pkg.test) { console.error("::error::packages/engine has no `test` script, so the root `npm test` is a green no-op."); bad = true; }
+            if (!pkg.gate) { console.error("::error::packages/engine has no `gate` script. THE FIXTURE GATE IS NOT RUNNING, so nothing proves this release makes the same spreadsheet Monospace does."); bad = true; }
+            if (!root.gate) { console.error("::error::the root package.json has no `gate` script, so the step below runs nothing."); bad = true; }
+            if (bad) process.exit(1);
+          '
+
+      - name: The light suite
+        run: npm test
+
+      # The gate's last check imports `dist/`, and fails rather than skips when
+      # it is absent on CI. See the matching step in ci.yml.
+      - name: Build the package, so the published artefact is checked too
+        run: npm run build --workspace packages/engine
+
+      - name: ⭐ The gate
+        run: |
+          set -euo pipefail
+          npm run gate 2>&1 | tee gate.log
+
+      - name: Put the gate's report on the job summary
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ ! -f gate.log ]; then exit 0; fi
+          {
+            echo "### The fixture gate"
+            echo
+            echo "<details><summary>full report</summary>"
+            echo
+            echo '```'
+            cat gate.log
+            echo '```'
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ────────────────────────────────────────────────────────────────────────
   # ⭐ THE ONE BUILD OF THE FRONT-END. Both downloads descend from this job.
@@ -106,6 +152,7 @@ jobs:
     name: The front-end (built once)
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -134,6 +181,9 @@ jobs:
     name: Windows binary
     needs: bundle
     runs-on: windows-latest
+    # Longer than the others: a cold rust-cache means a full release build
+    # with link-time optimisation.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -259,6 +309,7 @@ jobs:
     needs: [bundle, windows]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # The only job that needs it. See the banner beside the top-level block.
     permissions:
       contents: write

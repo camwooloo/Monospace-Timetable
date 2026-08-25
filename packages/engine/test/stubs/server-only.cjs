@@ -15,18 +15,19 @@
  * with every other byte untouched — and Monospace is treated as read-only
  * throughout: the gate reads it and writes nothing to it.
  *
- * ⚠️ IT IS AN ALIAS AND NOT A `node_modules` STUB, and that is forced rather
- * than chosen: the import is resolved relative to the file doing it, which
- * lives inside the Monospace tree, so a package installed here is never
- * consulted and Monospace's own real `server-only` wins. A resolver alias is
- * the only thing that beats that. `vitest.config.ts` declares it once and
- * `vite-node` gives the fixture-refresh script the same resolver, so there is
- * still one mechanism.
+ * ⚠️ IT IS AN INTERCEPTION AND NOT A `node_modules` STUB, and that is forced
+ * rather than chosen: the import is resolved relative to the file doing it,
+ * which lives inside the Monospace tree, so a package installed here is never
+ * consulted and Monospace's own real `server-only` wins. Only a resolver
+ * interception beats that. `scripts/register-hooks.mjs` does it — in BOTH
+ * module systems, because `tsx` transpiles the reference writer to CJS — and
+ * `vitest.config.ts` keeps an alias to the same file, so there is one stub
+ * rather than three that can drift.
  *
  * ⚠️ AND IT CANNOT MASK A REGRESSION IN WHAT WE SHIP: the engine's own copy of
  * the writer never imports `server-only` — removing that line is documented
  * change #1 in `src/workbook/timetableWorkbook.ts` — so nothing in `src/`
- * resolves through here. `test/fixture.test.ts` asserts that.
+ * resolves through here. `test/source.test.ts` asserts that.
  */
 
 /* CommonJS on purpose: `tsx` transpiles the reference writer to CJS, so the

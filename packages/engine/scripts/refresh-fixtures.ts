@@ -39,7 +39,7 @@ import {
   makeFixtureDocument,
   makeFixtureDocumentPlain,
 } from "../test/fixtures/schoolDocument";
-import { haveMonospaceSource, monospaceRoot, referenceWorkbook } from "../test/reference";
+import { haveMonospaceSource, monospaceRoot, referenceWorkbook } from "../gate/reference";
 
 const OUT = resolve(fileURLToPath(new URL("..", import.meta.url)), "fixtures");
 

@@ -241,7 +241,7 @@ export function makeFixtureDocument(): SchoolDocument {
            the same shape as the file this whole spec was measured from: a
            half-term sheet, two cycle-week templates, 38 week sheets, and the
            info sheet this writer adds. It is also what makes the number in
-           `hoist.test.ts` meaningful: 2 templates + 38 weeks = 40 grid sheets
+           `gate/hoist.ts` meaningful: 2 templates + 38 weeks = 40 grid sheets
            that take protection, so a disabled hoist misplaces exactly 40
            elements. */
         end: "2027-07-16",

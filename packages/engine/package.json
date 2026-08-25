@@ -39,6 +39,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "gate": "node --import tsx --import ./scripts/register-hooks.mjs gate/run.ts",
     "fixtures:refresh": "node --import tsx --import ./scripts/register-hooks.mjs scripts/refresh-fixtures.ts",
     "build:browser": "node --import tsx scripts/build-browser.ts"
   },

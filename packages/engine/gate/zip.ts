@@ -136,7 +136,17 @@ export function readZip(buf: Uint8Array): ZipMember[] {
    asserts the count is the same on both sides. A file that stopped writing a
    `saltValue` at all would otherwise sail through as "normalised". */
 
-export type Volatile = { pattern: RegExp; replacement: string; why: string };
+export type Volatile = {
+  /** ⚠️ THE ATTRIBUTE'S OWN NAME, and it is not decoration. `compare.ts`
+   *  asserts the substitution COUNTS match on both sides, and the regression
+   *  that check exists to catch is a writer that stopped emitting one of these
+   *  altogether. Reporting that as "index 0" makes the reader open this file to
+   *  find out what index 0 is. */
+  field: string;
+  pattern: RegExp;
+  replacement: string;
+  why: string;
+};
 
 export const VOLATILE: Volatile[] = [
   {
@@ -146,6 +156,7 @@ export const VOLATILE: Volatile[] = [
      * would make every Monospace workbook in the world share one — so it can
      * never be deterministic and must be normalised instead.
      */
+    field: "saltValue",
     pattern: /saltValue="[^"]*"/g,
     replacement: 'saltValue="<SALT>"',
     why: "random 16-byte salt, regenerated per sheet per run",
@@ -158,6 +169,7 @@ export const VOLATILE: Volatile[] = [
      * files ever disagreed about the ROUNDS or the ALGORITHM those attributes
      * are still compared, because they are not in this pattern.
      */
+    field: "hashValue",
     pattern: /hashValue="[^"]*"/g,
     replacement: 'hashValue="<HASH>"',
     why: "SHA-512 of the password and the random salt",
@@ -175,6 +187,7 @@ export const VOLATILE: Volatile[] = [
      * construction-time clock. So `dcterms:created` follows the model (and is
      * checked), and `dcterms:modified` is the wall clock of the run.
      */
+    field: "dcterms:modified",
     pattern: /<dcterms:modified[^>]*>[^<]*<\/dcterms:modified>/g,
     replacement: "<dcterms:modified><MODIFIED></dcterms:modified>",
     why: "wall clock at WorkbookWriter construction",

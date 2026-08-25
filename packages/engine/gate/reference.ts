@@ -14,16 +14,23 @@
  *   · ⚠️ NOTHING IN THE MONOSPACE REPO IS WRITTEN TO. It is a live commercial
  *     product and this package treats it as read-only. The import is a read.
  *   · The ONE thing that has to be resolved for it to load at all is
- *     `import "server-only"`, Next.js's build-time tripwire, which is aliased
- *     to an empty stub in `vitest.config.ts`. That is the minimum
- *     intervention; see that file's banner.
+ *     `import "server-only"`, Next.js's build-time tripwire, which is
+ *     intercepted by `scripts/register-hooks.mjs` and answered with the empty
+ *     stub at `test/stubs/server-only.cjs`. That is the minimum intervention;
+ *     see that file's banner.
  *   · `exceljs` and `node:stream` resolve normally — the reference runs on
  *     Node, which is what it was written for.
  *
- * ── ⚠️ AND IT IS NOT REQUIRED FOR THE GATE TO RUN ────────────────────────
- * The reference BYTES are committed under `fixtures/`, so `vitest run` on a
+ * ⚠️ BOTH ENTRY POINTS THAT REACH THIS FILE MUST REGISTER THOSE HOOKS — the
+ * gate (`gate/run.ts`) and `scripts/refresh-fixtures.ts`, both launched as
+ * `node --import tsx --import ./scripts/register-hooks.mjs …`. Without them
+ * Monospace's own real `server-only` is what resolves, and it throws on load.
+ *
+ * ── ⚠️ AND IT IS NOT REQUIRED FOR THE GATE TO RUN ──────────────────────
+ * The reference BYTES are committed under `fixtures/`, so `npm run gate` on a
  * machine with no Monospace checkout still compares our output against them
- * and still fails on a regression. This module is what REFRESHES those
+ * and still fails on a regression — it reports the live comparison as SKIPPED,
+ * by name, rather than passing quietly. This module is what REFRESHES those
  * fixtures, and refreshing is a deliberate act — `npm run fixtures:refresh` —
  * because a fixture that regenerates itself on every run is not a fixture.
  */
@@ -73,13 +80,14 @@ type SourceWriter = {
 export async function referenceWorkbook(
   model: TimetableWorkbookModel,
 ): Promise<Uint8Array> {
-  /* ⚠️ NO `@vite-ignore` HERE, AND THAT IS LOAD-BEARING. With it the dynamic
-     import becomes a NATIVE one that escapes the module graph — and then
-     `server-only` resolves relative to the Monospace file that imports it,
-     finding Monospace's own real package, which throws. Routed through the
-     graph, the alias in `vitest.config.ts` applies. The specifier is a
-     variable, so the bundler cannot analyse it statically; that is fine,
-     because nothing bundles this file. */
+  /* ⚠️ THE SPECIFIER IS A VARIABLE AND NOTHING BUNDLES THIS FILE, so the
+     import is resolved at run time by whatever loader hooks the process
+     registered — which is exactly how `server-only` gets intercepted. It used
+     to run under vitest, where the same job was done by a resolver alias in
+     `vitest.config.ts` and a bare `@vite-ignore` would have broken it by
+     turning this into a native import that escaped the module graph. There is
+     no vite in the picture any more; `scripts/register-hooks.mjs` does the
+     interception in both module systems. */
   const mod = (await import(
     pathToFileURL(monospaceWriterPath()).href
   )) as SourceWriter;

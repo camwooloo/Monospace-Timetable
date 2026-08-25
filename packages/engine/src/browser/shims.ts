@@ -12,7 +12,7 @@
  *
  * So the requirement is stated ONCE, here, as data. Each bundle reads it and
  * translates it into whatever its own tool wants. `scripts/build-browser.ts`
- * is the worked example (esbuild), and `test/browser.test.ts` builds and RUNS
+ * is the worked example (esbuild), and `gate/browser.ts` builds and RUNS
  * the result, so this list is executed rather than merely documented.
  *
  * ── ⭐ AND WHAT IS DELIBERATELY *NOT* SHIMMED ────────────────────────────

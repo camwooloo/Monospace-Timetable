@@ -15,8 +15,9 @@
 
 import { describe, expect, test } from "vitest";
 
-import { buildTimetableModel } from "../src/model/buildModel";
+import { buildTimetableModel, type BuildModelResult } from "../src/model/buildModel";
 import type { SheetCell, SheetDay } from "../src/lib/timetableSheet";
+import type { SchoolDocument } from "../src/model/document";
 import {
   FIXTURE_NOW,
   FIXTURE_PASSWORD,
@@ -24,7 +25,45 @@ import {
   makeFixtureDocumentPlain,
 } from "./fixtures/schoolDocument";
 
-function build(doc = makeFixtureDocument(), now = FIXTURE_NOW) {
+type Built = Extract<BuildModelResult, { ok: true }>;
+
+/**
+ * ⚠️ BUILT ONCE PER DISTINCT INPUT, AND THE RESULT IS FROZEN.
+ *
+ * Building the fixture year is ~1.6 s — 38 weeks × 5 days × 6 rooms × 9 rows,
+ * resolved against templates, changes and bookings — and 29 of these tests
+ * hand it the SAME document. Rebuilding it each time made this file 47 s of
+ * the suite's 139 s while proving the builder is deterministic, which is not
+ * what any of them is testing.
+ *
+ * ⭐ THE KEY IS THE INPUT, so the tests that MUTATE a document before building
+ * (blanked sheet names, stripped week labels, a room taken out of service)
+ * still get their own build — a shared model would make them silently assert
+ * against somebody else's year.
+ *
+ * ⚠️ AND IT IS DEEP-FROZEN, so "the tests only read the model" is enforced by
+ * the runtime rather than promised in a comment. If you need to change a
+ * model, change the DOCUMENT and build from that; a write to a shared model
+ * would otherwise leak into whichever test happened to run next.
+ */
+const cache = new Map<string, Built>();
+
+function deepFreeze<T>(value: T): T {
+  if (value === null || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.freeze(value);
+  for (const v of Object.values(value as Record<string, unknown>)) deepFreeze(v);
+  return value;
+}
+
+function build(doc: SchoolDocument = makeFixtureDocument(), now = FIXTURE_NOW): Built {
+  /* ⚠️ `undefined` IS PRESERVED IN THE KEY. Plain `JSON.stringify` drops a
+     key whose value is `undefined`, so `{weekLabels: undefined}` and a
+     document with no `weekLabels` at all would hash the same — and one of the
+     tests below builds exactly the first of those. */
+  const key = `${now}\u0000${JSON.stringify(doc, (_k, v) => (v === undefined ? "\u0000undefined" : v))}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+
   const r = buildTimetableModel({
     document: doc,
     now,
@@ -32,6 +71,8 @@ function build(doc = makeFixtureDocument(), now = FIXTURE_NOW) {
     password: FIXTURE_PASSWORD,
   });
   if (!r.ok) throw new Error(r.error);
+  deepFreeze(r);
+  cache.set(key, r);
   return r;
 }
 

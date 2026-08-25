@@ -23,8 +23,9 @@
     "build:apps": "npm run build --workspace apps --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:engine": "npm run test --workspace packages/engine",
+    "gate": "npm run gate --workspace packages/engine",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "check": "npm run typecheck && npm run test"
+    "check": "npm run typecheck && npm run test && npm run gate"
   },
   "engines": {
     "node": ">=20"

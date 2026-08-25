@@ -1,17 +1,19 @@
 /**
  * ══════════════════════════════════════════════════════════════════════════
- *  MAKE `server-only` RESOLVABLE, FOR ONE SCRIPT, IN BOTH MODULE SYSTEMS
+ *  MAKE `server-only` RESOLVABLE, FOR TWO ENTRY POINTS, IN BOTH MODULE SYSTEMS
  * ══════════════════════════════════════════════════════════════════════════
  *
- * `scripts/refresh-fixtures.ts` loads Monospace's UNMODIFIED writer to
- * generate the reference bytes, and that file opens with
+ * `gate/run.ts` and `scripts/refresh-fixtures.ts` both load Monospace's
+ * UNMODIFIED writer — the gate to check the committed fixtures are not stale,
+ * the script to regenerate them — and that file opens with
  * `import "server-only"` — Next.js's build-time tripwire, whose real package
  * throws the moment it is loaded outside a React Server Components graph.
  *
  * ⚠️ AN INSTALLED STUB CANNOT WIN THAT. The specifier is resolved relative to
  * the importing file, which lives inside the Monospace checkout, so Node finds
  * Monospace's own real `server-only` and never looks here. Only a resolver
- * interception beats it — the same reason `vitest.config.ts` uses an alias.
+ * interception beats it — the same reason `vitest.config.ts` keeps an alias
+ * for the same specifier, against the day something under vitest needs it.
  *
  * ⚠️ AND IT HAS TO BE INTERCEPTED IN **BOTH** MODULE SYSTEMS. `tsx` transpiles
  * the `.ts` to CommonJS, so the tripwire arrives as a `require()` and sails
@@ -21,6 +23,11 @@
  * ⭐ BOTH POINT AT THE SAME STUB, `test/stubs/server-only.cjs`, which is also
  * what the vitest alias points at — one stub, three ways of reaching it,
  * rather than three stubs that can drift.
+ *
+ * ⚠️ ADD THE FLAG TO ANY NEW ENTRY POINT THAT REACHES `gate/reference.ts`.
+ * `--import ./scripts/register-hooks.mjs` is what makes it work, and its
+ * absence looks like Monospace's writer being broken rather than like a
+ * missing flag.
  *
  * ⚠️ EXACTLY ONE SPECIFIER IS INTERCEPTED and everything else passes straight
  * through. A hook that rewrote more could change what the reference writer IS,

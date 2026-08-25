@@ -24,6 +24,11 @@ dist/
 build/
 *.tsbuildinfo
 
+# The fixture gate's report, tee'd to a file by CI so it can be put on the job
+# summary. Nothing reads it back; it is here because running CI's own command
+# locally leaves one behind.
+gate.log
+
 # Rust
 target/
 

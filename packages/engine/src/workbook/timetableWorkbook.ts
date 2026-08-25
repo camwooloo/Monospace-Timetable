@@ -7,9 +7,9 @@
  * This file is Monospace's `src/lib/timetableWorkbook.ts`, and the FOUR
  * differences below are the entire diff. Everything else — every geometry
  * decision, every merge, every argued comment — is byte-for-byte the original,
- * because `test/fixture.test.ts` regenerates a workbook with Monospace's own
- * copy of this file and requires every zip member to match ours. A "tidy-up"
- * here is a fixture failure, which is the point.
+ * because the fixture gate (`npm run gate`) regenerates a workbook with
+ * Monospace's own copy of this file and requires every zip member to match
+ * ours. A "tidy-up" here is a gate failure, which is the point.
  *
  *   1. ⚠️ `import "server-only"` IS GONE, and its title with it. That line is
  *      a Next.js build-time tripwire: it throws if the module is ever pulled

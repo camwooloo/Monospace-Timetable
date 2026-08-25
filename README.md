@@ -193,7 +193,8 @@ The repository is a workspace:
 
 ```bash
 npm install        # workspace root
-npm test           # the engine fixture gate — the thing that must not go red
+npm run gate       # ⭐ the engine fixture gate — the thing that must not go red
+npm test           # the light unit tests
 npm run build      # engine first, then apps/tool/dist/timetable.html
 ```
 
@@ -204,12 +205,19 @@ workflow builds `apps/tool` once on Linux, attaches that file as
 built twice. `.github/workflows/release.yml` says why in more detail than you
 probably want.
 
-**The fixture gate is the point.** `npm test` regenerates the workbook and
+**The fixture gate is the point.** `npm run gate` regenerates the workbook and
 compares it, member by member on the raw compressed bytes, against reference
 files produced by Monospace's own writer. If it passes, this tool produces the
 same spreadsheet the paid product does. If you change anything in the engine
 and it goes red, the workbook moved — and you have to say why before you
 change the fixtures.
+
+⚠️ **It is `npm run gate`, not `npm test`, and that is deliberate.** The gate is
+a plain Node program with no test runner under it: sheet protection is 100,000
+synchronous SHA-512 rounds per sheet and nothing yields for tens of seconds,
+which starved vitest's reporter channel and killed runs in which every test had
+passed. `npm test` still runs the light unit tests, and CI runs both — but a
+green `npm test` says nothing about the bytes.
 
 Contributions: please read the
 [Contributions section of `LICENSING.md`](LICENSING.md#-contributions-decide-cla-or-dco-before-the-first-one-arrives)

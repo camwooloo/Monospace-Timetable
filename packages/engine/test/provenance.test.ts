@@ -32,7 +32,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
-import { haveMonospaceSource, monospaceRoot } from "./reference";
+import { haveMonospaceSource, monospaceRoot } from "../gate/reference";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -193,53 +193,19 @@ describe.skipIf(!haveMonospaceSource())("the copied spec", () => {
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
- *  THE NODE TARGET, FROM THE BUILT PACKAGE
+ *  THE NODE TARGET IS CHECKED, BUT NOT HERE
  * ══════════════════════════════════════════════════════════════════════════
  *
- * ⚠️ EVERY OTHER TEST IMPORTS `src/`, THROUGH VITEST'S TRANSFORM. That proves
- * the code is right and proves nothing about what gets PUBLISHED — and the
- * published artefact has already been broken once here in a way nothing else
- * would have caught: `tsc` emits extensionless relative specifiers, Node's ESM
- * loader refuses them, and `dist/index.js` built cleanly and could not be
- * imported at all. `scripts/fix-esm-extensions.ts` is the fix; this is the
- * test that it is still working.
+ * ⚠️ EVERY TEST IN THIS FILE READS `src/`. That proves the code is right and
+ * proves nothing about what gets PUBLISHED — and the published artefact has
+ * already been broken once here in a way nothing else would have caught: `tsc`
+ * emits extensionless relative specifiers, Node's ESM loader refuses them, and
+ * `dist/index.js` built cleanly and could not be imported at all.
+ * `scripts/fix-esm-extensions.ts` is the fix.
  *
- * ⭐ IT SKIPS WHEN `dist/` IS ABSENT rather than failing, because `npm test`
- * has to work on a fresh clone before anybody has run `npm run build`.
+ * ⭐ THE CHECK THAT IT IS STILL WORKING IS `npm run gate` — "the published
+ * package", the last step. It moved because proving it means WRITING a
+ * workbook from `dist/`, which is 40 sheets × 100,000 synchronous SHA-512
+ * rounds, and that is the work no test runner's reporter channel survives. See
+ * `gate/run.ts`.
  */
-import { existsSync } from "node:fs";
-import { pathToFileURL } from "node:url";
-
-const DIST = resolve(ROOT, "dist/index.js");
-
-describe.skipIf(!existsSync(DIST))("the built package", () => {
-  test("Node can import dist/ and write a workbook from it", async () => {
-    const mod = (await import(pathToFileURL(DIST).href)) as {
-      buildTimetableModel: typeof import("../src/model/buildModel").buildTimetableModel;
-      bufferTimetableWorkbook: typeof import("../src/workbook/timetableWorkbook").bufferTimetableWorkbook;
-      SCHOOL_DOCUMENT_VERSION: number;
-    };
-
-    expect(mod.SCHOOL_DOCUMENT_VERSION).toBe(1);
-
-    const { makeFixtureDocument, FIXTURE_NOW, FIXTURE_PASSWORD } = await import(
-      "./fixtures/schoolDocument"
-    );
-    const built = mod.buildTimetableModel({
-      document: makeFixtureDocument(),
-      now: FIXTURE_NOW,
-      generatedBy: "Fixture",
-      password: FIXTURE_PASSWORD,
-    });
-    expect(built.ok).toBe(true);
-    if (!built.ok) return;
-
-    const bytes = await mod.bufferTimetableWorkbook(built.model);
-    /* A zip, and a workbook-sized one. The byte-level claim is the fixture
-       gate's job; this one is "the published thing runs at all". */
-    expect(bytes[0]).toBe(0x50); // 'P'
-    expect(bytes[1]).toBe(0x4b); // 'K'
-    expect(bytes.length).toBeGreaterThan(100_000);
-    console.log(`\n  dist/ produced a ${bytes.length}-byte workbook under Node`);
-  });
-});

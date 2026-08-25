@@ -22,7 +22,7 @@
  * the one place it is legal, and nulls the model so the library's own late
  * call renders nothing.
  *
- * ⭐ THIS FILE IS THE CHECK THAT THE FIX IS STILL THERE — and `hoist.test.ts`
+ * ⭐ THIS FILE IS THE CHECK THAT THE FIX IS STILL THERE — and `gate/hoist.ts`
  * is the check that THIS check works, by turning the hoist off and requiring
  * it to fail. A validator nobody has seen fail is a validator nobody has
  * tested.
@@ -133,7 +133,7 @@ export function worksheetChildren(xml: string): string[] {
  *
  * ⭐ IT REPORTS ONE VIOLATION PER OFFENDING ELEMENT, not per pair, so the
  * count is "how many elements are in the wrong place" — which is the number
- * `hoist.test.ts` asserts.
+ * `gate/hoist.ts` asserts.
  */
 export function sequenceViolations(
   part: string,
