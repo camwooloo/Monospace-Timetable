@@ -199,6 +199,36 @@ jobs:
             exit 1
           fi
 
+      # ══════════════════════════════════════════════════════════════════
+      # ⭐⭐ THE TAG AND THE CRATE VERSION MUST AGREE
+      # ══════════════════════════════════════════════════════════════════
+      # `update.rs` takes CURRENT from `CARGO_PKG_VERSION` and compares it
+      # against the latest release's tag with the `v` stripped. So tagging
+      # v0.2.0 over a Cargo.toml still saying 0.1.0 does not ship a mislabelled
+      # binary — it ships one that asks the API for the newest release, finds
+      # 0.2.0, decides 0.2.0 > 0.1.0, and offers to update ITSELF. Every
+      # launch, for ever, on every machine that downloaded it. The only way out
+      # is another release.
+      #
+      # ⚠️ NOTHING ELSE CATCHES THIS. The build is clean, the tests pass, the
+      # exe runs, and the fault appears only on a machine that has the release
+      # and can reach the network — which is no machine in CI.
+      - name: The tag and the crate version must agree
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          crate=$(grep -m1 '^version *= *"' "$RUST_MANIFEST_DIR/Cargo.toml" | sed -E 's/.*"(.*)".*/\1/')
+          echo "tag=$tag  crate=$crate"
+          if [ "$tag" != "$crate" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match $RUST_MANIFEST_DIR/Cargo.toml version $crate."
+            echo "The updater compares the running CARGO_PKG_VERSION against the release tag."
+            echo "Shipping these mismatched makes every copy offer to update itself, on every launch."
+            echo "Bump the crate version, commit it, then move the tag."
+            exit 1
+          fi
+
       - uses: actions/download-artifact@v4
         with:
           name: timetable-html
