@@ -73,10 +73,33 @@ export default defineConfig({
     },
   },
   test: {
-    /* ⚠️ NO `pool`, NO RAISED TIMEOUTS, ON PURPOSE. See the banner: both were
-       tried against a failure that is not a timeout you can raise, and the
-       defaults are correct for a suite this light. If a test here ever needs
-       180 seconds, it is not a test — it belongs in `gate/`. */
+    /* ⚠️ NO `pool`, STILL — see the banner. `forks`/`singleFork` was tried
+       against the birpc failure and made it strictly worse.
+
+       ⚠️⚠️ BUT `testTimeout` IS RAISED, AND IT IS NOT THE KNOB THE BANNER SAYS
+       DOES NOTHING. Those are two different failures and conflating them cost
+       a red build:
+
+         · birpc's `onTaskUpdate` timeout — NOT configurable, fires while a
+           test is blocking the reporter channel, and reports every test as
+           PASSED while exiting 1. That is the one no value here can reach, and
+           the reason the heavy work moved to `gate/`.
+         · vitest's own per-test timeout — this one, default 5000 ms, reported
+           honestly against the single test that exceeded it.
+
+       The second fired on `an explicit year id wins`. Nothing is wrong with
+       it: `buildTimetableModel` over the fixture year takes ~1.6 s on the
+       machine the fixtures were made on, and the two-core CI runner is around
+       2.7× slower, which puts the whole file on the line. Sibling tests in the
+       same run finished at 4.37 s — inside 5000 ms by six hundred milliseconds,
+       which is not a margin, it is a coin toss.
+
+       ⚠️ SO THIS IS HEADROOM FOR A SLOW MACHINE AND NOT PERMISSION TO PUT SLOW
+       WORK HERE. The rule the banner sets stands: if a test needs tens of
+       seconds it belongs in `gate/`. 30 s against a 4.4 s worst case is ~7×,
+       chosen so a runner having a bad afternoon is not a red build, and still
+       far under the point where a genuinely wedged test looks like a hang. */
+    testTimeout: 30_000,
     include: ["test/**/*.test.ts"],
   },
 });
