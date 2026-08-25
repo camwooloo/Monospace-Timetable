@@ -1114,6 +1114,110 @@ table.list select {
   }
 }
 
+/* ── The title bar ──────────────────────────────────────────────────────
+   ⚠️ SHELL ONLY. `main.ts` stamps `data-shell="yes"` on <html>; in a browser
+   this whole block never applies and the real window furniture is used.
+
+   The Rust window is frameless (`with_decorations(false)`), so this strip IS
+   the window's title bar: the grip drags it, double-click maximises, and the
+   three buttons are the only way to minimise or close short of Alt+F4.
+
+   z-index 80 — ABOVE the modal (70) and the toasts (60), deliberately. A
+   confirm dialog that covered the close button would leave somebody with a
+   dialog on screen and no way out of the app but the task manager. */
+:root[data-shell="yes"] {
+  --titlebar-h: 34px;
+}
+#titlebar-host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-h, 0px);
+  z-index: 80;
+}
+.titlebar {
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--stroke);
+  /* ⚠️ The bar is over the blooms, which are `position: fixed` — without a
+     ground of its own the school's name would sit on a moving gradient. */
+  background-color: color-mix(in srgb, var(--bg-0) 82%, transparent);
+}
+.tb-grip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-width: 0;
+  /* ⚠️ NOT `-webkit-app-region: drag` — that is Electron's, and wry does not
+     implement it. The drag is `host.windowDrag()` on pointerdown. */
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tb-mark {
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+  flex: none;
+}
+.tb-mark .m-sq {
+  fill: currentColor;
+}
+.tb-mark .m-tk {
+  fill: var(--accent);
+}
+.tb-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tb-year {
+  font-size: 11px;
+  color: var(--text-mute);
+  white-space: nowrap;
+}
+.tb-buttons {
+  display: flex;
+  flex: none;
+}
+.tb-btn {
+  width: 46px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.14s var(--ease), color 0.14s var(--ease);
+}
+.tb-btn:hover {
+  background: var(--glass-hi);
+  color: var(--text);
+}
+/* ⚠️ RED ON HOVER, WHITE GLYPH — the Windows convention, and the one visual
+   cue that separates "close the app" from the two beside it. */
+.tb-close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+
+/* The app is pushed down by exactly the bar's height. `#app` is `height: 100%`,
+   so the bar would otherwise sit on top of the rail. */
+:root[data-shell="yes"] body {
+  padding-top: var(--titlebar-h);
+  box-sizing: border-box;
+}
+
 /* ── Small type helpers ─────────────────────────────────────────────────── */
 .mut {
   color: var(--text-mute);

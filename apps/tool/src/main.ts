@@ -16,7 +16,7 @@
 import { button, h, icon } from "./dom";
 import { mark } from "./logo";
 import { openGuide, startGuide } from "./guide";
-import { host } from "./host";
+import { host, isShell, onShellBoot } from "./host";
 import { closeModal, confirmDialog, openModal, toast } from "./ui";
 import {
   backupInfo,
@@ -141,6 +141,84 @@ function rail(): HTMLElement {
       ),
     ),
   );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ⭐⭐ THE TITLE BAR — ONLY IN THE SHELL, AND ONLY BECAUSE IT IS FRAMELESS
+   ══════════════════════════════════════════════════════════════════════════
+
+   The Rust window is built `with_decorations(false)`, and its comment says the
+   title bar is "drawn by the front-end". ⚠️ IT WAS NOT. The four window
+   operations existed in the bridge from the start and nothing ever called
+   them, so the shipped exe was a window that could not be moved, minimised or
+   closed except with Alt+F4.
+
+   ⚠️ NOT DRAWN IN A BROWSER, where the real window furniture is already there
+   and a second row of fake buttons would be a lie — `windowClose()` cannot
+   close a tab it did not open.
+
+   ⚠️ AND IT SITS ABOVE THE MODAL SCRIM ON PURPOSE (see `aurora.css`). A dialog
+   that covered the close button would leave somebody with a confirm on screen
+   and no way out of the app but the task manager. */
+
+function titlebar(): HTMLElement {
+  const d = doc();
+  const year = yearNow();
+  return h(
+    "div.titlebar",
+    null,
+    /* ⭐ THE WHOLE STRIP IS THE DRAG HANDLE, buttons excepted — that is what a
+       title bar is. `pointerdown` and not `mousedown`: wry forwards pointer
+       events, and `drag_window` must start while the button is still down. */
+    h(
+      "div.tb-grip",
+      {
+        onpointerdown: (e: PointerEvent) => {
+          if (e.button !== 0) return;
+          host.windowDrag();
+        },
+        ondblclick: () => host.windowToggleMaximize(),
+      },
+      h("div.tb-mark", null, mark(15)),
+      h("div.tb-name", null, d.school.name || "Monospace Timetable"),
+      year ? h("div.tb-year", null, year.name) : null,
+    ),
+    h(
+      "div.tb-buttons",
+      null,
+      h(
+        "button.tb-btn",
+        { type: "button", title: "Minimise", "aria-label": "Minimise", onclick: () => host.windowMinimize() },
+        glyph("M 1 6 H 11"),
+      ),
+      h(
+        "button.tb-btn",
+        {
+          type: "button",
+          title: "Maximise",
+          "aria-label": "Maximise",
+          onclick: () => host.windowToggleMaximize(),
+        },
+        glyph("M 1.5 1.5 H 10.5 V 10.5 H 1.5 Z"),
+      ),
+      h(
+        "button.tb-btn.tb-close",
+        { type: "button", title: "Close", "aria-label": "Close", onclick: () => host.windowClose() },
+        glyph("M 1.5 1.5 L 10.5 10.5 M 10.5 1.5 L 1.5 10.5"),
+      ),
+    ),
+  );
+}
+
+/** A 12x12 stroke glyph. Windows' own controls are drawn at this weight. */
+function glyph(d: string): SVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 12 12");
+  svg.setAttribute("width", "12");
+  svg.setAttribute("height", "12");
+  svg.setAttribute("aria-hidden", "true");
+  svg.innerHTML = `<path d="${d}" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="square"/>`;
+  return svg;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -275,6 +353,11 @@ async function saveFile() {
 function newFile() {
   const go = () => {
     replaceDocument(emptySchoolDocument(), null);
+    /* ⚠️ THE SHELL REMEMBERS WHERE THE LAST DOCUMENT LIVED so Ctrl+S does not
+       re-prompt. A new timetable has no home, and leaving the old path in place
+       would make the very next Save overwrite the school's previous file
+       without a dialog. */
+    host.forgetDocumentPath();
     clearBackup();
     setScreen("year");
     /* ⚠️ A NEW DOCUMENT IS DELIBERATELY NOT VALID TO EXPORT — no periods, no
@@ -323,6 +406,10 @@ function offerRestore() {
         cls: "primary",
         onclick: () => {
           const r = loadBackup();
+          /* Restored work came out of a browser profile, not out of a file —
+             so it has no home either, whatever the backup's remembered name
+             says. See `forgetDocumentPath`. */
+          host.forgetDocumentPath();
           closeModal();
           if (!r.ok) {
             toast(r.message, "bad", 11000);
@@ -377,6 +464,9 @@ function render() {
   const gridLeft = prevGrid?.scrollLeft ?? 0;
   const gridTop = prevGrid?.scrollTop ?? 0;
 
+  /* ⚠️ THE TITLE BAR IS A SIBLING OF `#app`, not a child: `#app` is the
+     rail+page grid at `height: 100%`, and putting a strip inside it would make
+     the rail start below the bar. `body` is the column. */
   root.replaceChildren(rail(), page);
 
   const scroll = document.getElementById("scroll");
@@ -396,6 +486,18 @@ function start() {
   root = document.createElement("div");
   root.id = "app";
   document.body.appendChild(h("div.bg", { "aria-hidden": "true" }));
+  if (isShell) {
+    /* Its own node, redrawn on each repaint so the school name and year in it
+       follow the document. */
+    const bar = h("div", { id: "titlebar-host" });
+    document.body.appendChild(bar);
+    subscribe(() => bar.replaceChildren(titlebar()));
+    bar.replaceChildren(titlebar());
+    /* The version on the About screen arrives with the boot payload, after
+       first paint. */
+    onShellBoot(repaint);
+    document.documentElement.dataset.shell = "yes";
+  }
   document.body.appendChild(root);
 
   subscribe(render);
