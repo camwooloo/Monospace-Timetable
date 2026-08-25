@@ -314,6 +314,30 @@ describe.skipIf(!reachable())("Monospace reads what this tool writes", () => {
     expect(pins[0].isTeachingWeek).toBe(false);
   });
 
+  test("a pinned week whose stored number did not arrive is a refusal, not a guess", async () => {
+    const { documentFromMonospace } = await loadMapper();
+    const { parts } = asMonospaceParts();
+    /* ⚠️ THE STATE A SPLIT DEPLOY PUTS THE APP IN. Monospace ships its Next
+       front-end on push and its Convex backend separately, so the route can be
+       live against a `yearPreview` that predates `pinnedCycleWeek`. The field
+       then arrives `undefined` for every pin. The old fallback wrote
+       `cycleWeek ?? 0`, which is `0` for any pin on a NON-TEACHING week —
+       exactly the pins that reseed the cycle under `pause`. */
+    const built = documentFromMonospace({
+      ...parts,
+      weeks: [
+        { monday: "2027-02-15", pinned: true, cycleWeek: null, pinReason: "snow" },
+        { monday: "2027-02-22", pinned: true, pinnedCycleWeek: 1, cycleWeek: 1 },
+      ],
+    });
+    expect(built.pinsUnreadable, "the unreadable pin was not counted").toBe(1);
+    const pins =
+      (built.document as { years: Array<{ pins?: Array<{ monday: string }> }> }).years[0].pins ?? [];
+    expect(pins.map((p) => p.monday), "the unreadable pin must not be guessed at").toEqual([
+      "2027-02-22",
+    ]);
+  });
+
   test("blank week labels are omitted, so both sides fall back to the same names", async () => {
     const { documentFromMonospace } = await loadMapper();
     const { parts } = asMonospaceParts();
