@@ -161,7 +161,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          p="$(cd downloaded && pwd)/$RELEASE_HTML_NAME"
+          # See the note in ci.yml: `pwd` is a POSIX path under Git Bash on
+          # Windows and Rust cannot resolve it, so the exe silently embeds the
+          # placeholder. `pwd -W` gives the Windows form.
+          cd downloaded
+          if root="$(pwd -W 2>/dev/null)"; then :; else root="$(pwd)"; fi
+          cd ..
+          p="$root/$RELEASE_HTML_NAME"
           test -f "$p"
           echo "MONOSPACE_TIMETABLE_HTML=$p" >> "$GITHUB_ENV"
           echo "embedding $(wc -c < "$p" | tr -d ' ') bytes built by the bundle job"

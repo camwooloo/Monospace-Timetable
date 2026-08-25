@@ -147,7 +147,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "MONOSPACE_TIMETABLE_HTML=$(pwd)/$HTML_ARTEFACT" >> "$GITHUB_ENV"
+          # ⚠️ `pwd` UNDER GIT BASH ON WINDOWS RETURNS A POSIX PATH — /d/a/repo/repo —
+          # and Rust's PathBuf cannot resolve that, so build.rs found no file, fell
+          # back to assets/placeholder.html behind a cargo:warning, and shipped a
+          # binary carrying the placeholder UI. `pwd -W` asks Git Bash for the
+          # Windows form (D:/a/repo/repo); forward slashes are fine for Rust.
+          # It is not a POSIX flag, hence the guard.
+          if root="$(pwd -W 2>/dev/null)"; then :; else root="$(pwd)"; fi
+          echo "MONOSPACE_TIMETABLE_HTML=$root/$HTML_ARTEFACT" >> "$GITHUB_ENV"
+          echo "pointing the crate at $root/$HTML_ARTEFACT"
 
       - uses: dtolnay/rust-toolchain@stable
 

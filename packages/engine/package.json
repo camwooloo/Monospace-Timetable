@@ -65,5 +65,9 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.62.5",
+    "@rollup/rollup-win32-x64-msvc": "4.62.5"
   }
 }
