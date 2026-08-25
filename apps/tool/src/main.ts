@@ -15,6 +15,7 @@
 
 import { button, h, icon } from "./dom";
 import { mark } from "./logo";
+import { openGuide, startGuide } from "./guide";
 import { host } from "./host";
 import { closeModal, confirmDialog, openModal, toast } from "./ui";
 import {
@@ -83,6 +84,12 @@ function rail(): HTMLElement {
         "button.rail-btn",
         {
           type: "button",
+          /* ⚠️ THE GUIDE RINGS THESE BY `data-screen`, and that is why it is an
+             attribute rather than an index into `RAIL`. An index would be
+             correct until somebody reorders the rail, and then it would be
+             quietly wrong — ringing Rooms while the dock talked about the
+             day. */
+          "data-screen": item.id,
           "aria-current": current === item.id ? "page" : null,
           title: item.title,
           onclick: () => setScreen(item.id),
@@ -95,6 +102,20 @@ function rail(): HTMLElement {
       "div.rail-foot",
       null,
       h("div.rail-sep"),
+      /* ⭐ RE-OPENABLE, AND FROM THE FURNITURE. The walkthrough offers itself
+         once, on a first run with nothing to restore; after that this is the
+         only way back to it, and a school that trains a new business manager
+         in August needs one. */
+      h(
+        "button.rail-btn",
+        {
+          type: "button",
+          title: "Walk through it step by step",
+          onclick: () => openGuide(0),
+        },
+        icon("compass"),
+        "Guide",
+      ),
       h(
         "button.rail-btn",
         {
@@ -379,6 +400,11 @@ function start() {
 
   subscribe(render);
   render();
+
+  /* ⚠️ AFTER `subscribe(render)`, AND THAT ORDER IS LOAD-BEARING — the guide
+     rings a node by selector after each repaint, and the node does not exist
+     until the render above has finished. See the banner in `guide.ts`. */
+  startGuide();
 
   /* ⚠️ THE BROWSER'S OWN "ARE YOU SURE" IS THE ONLY THING THAT CAN STOP A
      CLOSED TAB, and it is fired only when there is really something to lose.

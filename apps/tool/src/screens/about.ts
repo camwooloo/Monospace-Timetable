@@ -18,6 +18,7 @@
 import { SCHOOL_DOCUMENT_EXTENSION, SCHOOL_DOCUMENT_VERSION } from "../engine";
 import { button, card, h, notice } from "../dom";
 import { host } from "../host";
+import { openGuide } from "../guide";
 
 export const REPO_URL = "https://github.com/camwooloo/Monospace-Timetable";
 
@@ -35,6 +36,14 @@ export function aboutScreen(): HTMLElement {
           icon: "file",
           cls: "primary",
           onclick: () => host.openExternal(REPO_URL),
+        }),
+        /* ⭐ THE SECOND WAY BACK INTO THE WALKTHROUGH. The rail has the other
+           one. Somebody looking for help opens About — it is the screen with
+           the word "about" on it — and finding only a licence there is the
+           small failure that ends with them ringing the last person instead. */
+        button("Walk me through it", {
+          icon: "compass",
+          onclick: () => openGuide(0),
         }),
         h("span.mono.tiny.mut", null, REPO_URL),
       ),

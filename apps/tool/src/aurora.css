@@ -900,6 +900,220 @@ table.list select {
   margin-top: 20px;
 }
 
+/* ── The walkthrough ────────────────────────────────────────────────────
+   A DOCK, NOT A MODAL: the app stays live and usable behind it, which is the
+   whole point — see the banner in `guide.ts`.
+
+   ⚠️ BOTTOM-LEFT, AND THAT IS NOT A TASTE DECISION. `#toasts` is bottom-RIGHT
+   and every refusal in this app is a toast, so a dock there would cover the
+   sentence explaining why the thing the dock just told somebody to do did not
+   work. It is offset past the rail for the same reason: the rail button it
+   rings has to stay visible while it talks about it.
+
+   z-index 50 — above the page, BELOW toasts (60) and the modal (70). A confirm
+   dialog must be able to cover this; this must never cover a confirm dialog. */
+#guide {
+  position: fixed;
+  left: calc(var(--rail-w) + 18px);
+  bottom: 18px;
+  z-index: 50;
+  width: min(390px, calc(100vw - var(--rail-w) - 36px));
+  display: none;
+}
+#guide.open {
+  display: block;
+}
+.guide-card {
+  border: 1px solid var(--stroke-2);
+  border-radius: var(--radius);
+  background: var(--bg-1);
+  box-shadow: var(--shadow);
+  padding: 16px 18px 14px;
+  /* ⚠️ THE STEP IS THE KEY. `guide.ts` stamps `data-step`, so each step is a
+     new node to the browser and this runs again — which is the movement
+     between steps. Under `prefers-reduced-motion` the global rule at the top
+     of this file collapses it to nothing, and it must still read as finished
+     rather than mid-slide: hence `both`, and an end state that is the resting
+     state. */
+  animation: guide-in 0.34s var(--ease) both;
+}
+@keyframes guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.guide-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+.guide-mark {
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  flex: none;
+}
+.guide-mark .m-sq {
+  fill: currentColor;
+}
+.guide-mark .m-tk {
+  fill: var(--accent);
+}
+.guide-of {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+}
+.guide-of b {
+  color: var(--text-dim);
+  font-weight: 650;
+}
+.guide-x {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-mute);
+  padding: 5px 7px;
+  cursor: pointer;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+}
+.guide-x:hover {
+  background: var(--glass-2);
+  color: var(--text);
+}
+
+/* The ten ticks. A bar rather than "3/10" alone, because the useful fact is
+   how much is LEFT and a fraction makes you do the subtraction. */
+.guide-bar {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 13px;
+}
+.guide-tick {
+  height: 3px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--glass-hi);
+  transition: background 0.3s var(--ease);
+}
+.guide-tick.on {
+  background: var(--accent);
+}
+
+.guide-card h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.3;
+  margin: 0 0 7px;
+  text-wrap: balance;
+}
+.guide-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-dim);
+  margin: 0;
+}
+/* The "why". Quieter than the instruction and set off by a rule, because it is
+   the half somebody can skip on the first pass and needs on the second. */
+.guide-why {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-mute);
+  margin: 10px 0 0;
+  padding-left: 11px;
+  border-left: 2px solid var(--stroke);
+}
+
+.guide-state {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 13px;
+  padding: 7px 10px;
+  border-radius: 11px;
+  font-size: 11.5px;
+  background: var(--glass);
+  border: 1px solid var(--stroke);
+  color: var(--text-mute);
+}
+.guide-state svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.guide-state b {
+  font-weight: 650;
+  color: var(--text-dim);
+}
+.guide-state.done {
+  color: var(--ok);
+}
+.guide-state.done b {
+  color: var(--ok);
+}
+.guide-state.todo {
+  color: var(--warn);
+}
+.guide-state.todo b {
+  color: var(--warn);
+}
+
+.guide-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+.guide-acts .btn.fwd {
+  flex-direction: row-reverse;
+}
+
+/* ── The ring ───────────────────────────────────────────────────────────
+   ⚠️ A CLASS ON THE LIVE NODE, never a floating box at measured coordinates —
+   every write in this app rebuilds the page, so coordinates are stale within a
+   keystroke. `guide.ts` re-applies this after each repaint.
+
+   `outline` and not `border`: a border would change the button's box and shove
+   the rail's layout sideways every time the step changed. */
+.guide-ring {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+  animation: guide-pulse 2.4s var(--ease) infinite;
+}
+@keyframes guide-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.34);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(var(--accent-rgb), 0);
+  }
+}
+
+/* ⚠️ ON A NARROW WINDOW THE DOCK GOES FULL WIDTH AND THE RAIL SHRINKS TO 68px
+   — see the `max-width: 760px` block at the foot of this file, which is where
+   that 68 comes from. Hard-coding it twice is worse than it looks: they are
+   the same measurement and they must move together. */
+@media (max-width: 760px) {
+  #guide {
+    left: 78px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+}
+
 /* ── Small type helpers ─────────────────────────────────────────────────── */
 .mut {
   color: var(--text-mute);
