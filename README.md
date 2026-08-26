@@ -96,7 +96,7 @@ save and the app says so.
 
 Nothing is uploaded. There is no server. Turn off the internet and it still works.
 
-**And that same file opens in [Monospace](https://monospace.sh), both ways.** If your school already
+**And that same file opens in [Monospace](https://www.monospace.page), both ways.** If your school already
 uses Monospace, you can pull a year out of it as a `.timetable.json`, open it here, and build the
 workbook — or do the whole timetable here first and load it into Monospace when you're ready, without
 typing any of it twice. The dates, the cycle, the closures, the day, the rooms and the whole standing
@@ -106,7 +106,7 @@ timetable come across. Bookings don't, and Monospace tells you so before it impo
 
 ## This is one feature of something bigger
 
-Monospace Timetable is a slice of **[Monospace](https://monospace.sh)** — an all-in-one project
+Monospace Timetable is a slice of **[Monospace](https://www.monospace.page)** — an all-in-one project
 management app that happens to be very well suited to schools.
 
 A school runs on departments, and Monospace is built that way: **IT Support**, **Site Team**,
@@ -123,7 +123,7 @@ Around them sit the things that belong to the whole school rather than one depar
 - **Pages** — the internal reference pages a school accumulates: printers, servers, who to ring
 
 If the timetable generator is useful to you, the rest probably is too.
-**[Have a look →](https://monospace.sh)**
+**[Have a look →](https://www.monospace.page)**
 
 ---
 

@@ -54,7 +54,7 @@ export function customiseScreen(): HTMLElement {
     null,
     card(
       "The school's colour",
-      "One colour, stored on the file, painting the day bands and the header block on this screen and in the exported workbook. Absent means Office's accent4 — the purple Cam's own file is a tint of — so a school that never opens this gets exactly the workbook it got before the setting existed.",
+      "One colour, stored on the file, painting the day bands and the header block on this screen and in the exported workbook. Absent means Office's accent4 — the purple a default Excel theme is a tint of — so a school that never opens this gets exactly the workbook it got before the setting existed.",
       h(
         "div.legend",
         { style: { marginBottom: "16px" } },

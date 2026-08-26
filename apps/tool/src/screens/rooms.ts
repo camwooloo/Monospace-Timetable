@@ -256,7 +256,7 @@ function fieldsCard(sheet: SchoolRoomSheet): HTMLElement {
 
   return card(
     "What to record about a room",
-    "One printed row under each room code, in this order. Cam's own file uses “No of PCs”, “Teacher” and “Telephone”.",
+    "One printed row under each room code, in this order. A typical IT sheet uses “No of PCs”, “Teacher” and “Telephone”.",
     sheet.fields.length >= MAX_CUSTOM_FIELDS
       ? notice(
           "warn",

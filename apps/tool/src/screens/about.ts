@@ -22,6 +22,9 @@ import { toast } from "../ui";
 import { openGuide } from "../guide";
 
 export const REPO_URL = "https://github.com/camwooloo/Monospace-Timetable";
+/** ⚠️ `monospace.sh` DOES NOT RESOLVE and was the link on all three promotion
+ *  points — the one job those links have. The live site is this one. */
+export const MONOSPACE_URL = "https://www.monospace.page";
 
 export function aboutScreen(): HTMLElement {
   return h(
@@ -66,7 +69,72 @@ export function aboutScreen(): HTMLElement {
       h(
         "p.hint",
         { style: { marginTop: "16px", marginBottom: "0" } },
-        "Licensed AGPL-3.0-only. Cam Wooloo owns the copyright. Section 13 of that licence means anyone who runs this as a website has to offer its source to the people using it — which is why the link above is on every screen rather than in a menu.",
+        /* ⚠️ NO PERSON NAMED HERE. This read "Cam Wooloo owns the copyright",
+           which put its own author into a screen a school reads — in the third
+           person — where the subject should be the program and what it costs
+           them. The copyright notice lives in LICENSE, which is where a
+           licence notice belongs and where AGPL-3.0 §4 asks for it. */
+        "Licensed AGPL-3.0-only — free to use, free to change, free to share. Section 13 of that licence means anyone who runs this as a website has to offer its source to the people using it, which is why the link above is on every screen rather than in a menu.",
+      ),
+    ),
+    /* ══════════════════════════════════════════════════════════════════
+       ⭐⭐ WHAT THIS IS A PIECE OF — the screen's second job
+       ══════════════════════════════════════════════════════════════════
+
+       This card replaced a sentence naming the author. About is the one screen
+       where a school asks "what IS this, and who is behind it" — the honest
+       answer is not a person's name, it is that the timetable engine came out
+       of a product and the rest of that product is there if they want it.
+
+       ⚠️ IT IS THE SAME PITCH AS THE README, DELIBERATELY. A school that finds
+       this on GitHub and a school that finds it in the app should be told the
+       same thing; two versions of one pitch is two things to keep true. Keep
+       them in step. */
+    card(
+      "This is one piece of something bigger",
+      "Monospace Timetable is the timetable engine out of Monospace — an all-in-one project management app that happens to suit schools very well.",
+      h(
+        "p.hint",
+        { style: { margin: "0 0 14px" } },
+        "A school runs on departments, and Monospace is built that way: IT Support, Site Team, Finance and the rest each get their own space, with the boards, tasks, notes, pages, chat and tickets that department actually needs and nothing it does not.",
+      ),
+      h(
+        "ul",
+        { class: "dim", style: { fontSize: "12.5px", lineHeight: "1.7", paddingLeft: "18px", margin: "0 0 16px" } },
+        h(
+          "li",
+          null,
+          h("b", null, "Timetable & Booking — "),
+          "this generator, plus a live booking board for rooms and minibuses that every department books against, so two departments cannot take the same minibus on the same Tuesday.",
+        ),
+        h(
+          "li",
+          null,
+          h("b", null, "Inventory — "),
+          "sites, buildings, rooms and every asset in them, with warranties, licences, suppliers and depreciation.",
+        ),
+        h("li", null, h("b", null, "Helpdesk — "), "staff raise tickets, your team works them."),
+        h(
+          "li",
+          null,
+          h("b", null, "Pages — "),
+          "the internal reference pages a school accumulates: printers, servers, who to ring.",
+        ),
+      ),
+      h(
+        "div.row",
+        null,
+        button("Have a look", {
+          icon: "file",
+          cls: "primary",
+          onclick: () => host.openExternal(MONOSPACE_URL),
+        }),
+        h("span.mono.tiny.mut", null, "monospace.page"),
+      ),
+      h(
+        "p.hint",
+        { style: { marginTop: "14px", marginBottom: "0" } },
+        "⚠️ And a year moves between the two either way as a .timetable.json — out of Monospace to build the workbook here, or out of here when a school is ready to move in. Nothing is typed twice.",
       ),
     ),
     card(
