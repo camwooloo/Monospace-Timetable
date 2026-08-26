@@ -376,6 +376,59 @@ export function yearFrames(
   return out;
 }
 
+/**
+ * ⭐⭐ NAME EACH CLOSED FRAME AFTER THE CLOSURE THAT CLOSED IT.
+ *
+ * A closed week has no cycle position, so `buildYear` gives it `label: null`
+ * and a timetable prints the generic "No timetable" in its corner — right,
+ * because that corner is answering "which week of the CYCLE is this".
+ *
+ * ⚠️ A ROTA IS ANSWERING A DIFFERENT QUESTION AND THE GENERIC WORD IS WRONG
+ * FOR IT. The reference workbook names weeks 8, 9, 16 and 17 "Half Term",
+ * "Christmas" and "Easter". Eight rows all reading "No timetable" tell a
+ * school nothing — and the school already typed the right word once, when it
+ * entered the closure.
+ *
+ * ⚠️ THE LONGEST OVERLAP WINS, NOT THE FIRST MATCH. A week holding an INSET
+ * day on the Monday and the first four days of Christmas would otherwise be
+ * called "INSET" — which a reader takes to mean "the week we came back".
+ *
+ * ⚠️ AND IT RUNS BEFORE `fillRota`, NEVER AFTER. The filler copies a frame's
+ * label onto the period it produces; relabelling the periods afterwards would
+ * be a second pass over the same data that a later change to the filler could
+ * silently start disagreeing with.
+ *
+ * ⭐ SHARED BY BOTH PROGRAMS, WHICH IS WHY IT IS HERE rather than in either
+ * one's own build step. This file is byte-pinned between the free tool and
+ * Monospace (`provenance.test.ts`), so the two cannot start naming the same
+ * week differently.
+ */
+export function labelClosedFrames(
+  frames: readonly RotaFrame[],
+  closures: ReadonlyArray<{ label: string; start: CivilDate; end: CivilDate }>,
+): RotaFrame[] {
+  if (closures.length === 0) return frames.map((f) => ({ ...f }));
+
+  const nameFor = (start: CivilDate): string | null => {
+    const days: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(start, i);
+      if (d) days.push(d);
+    }
+    let best: { label: string; days: number } | null = null;
+    for (const c of closures) {
+      const covered = days.filter((d) => d >= c.start && d <= c.end).length;
+      if (covered === 0) continue;
+      if (!best || covered > best.days) best = { label: c.label, days: covered };
+    }
+    return best?.label?.trim() || null;
+  };
+
+  return frames.map((f) =>
+    f.teaching || f.label ? { ...f } : { ...f, label: nameFor(f.start) },
+  );
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    READING ONE BACK
    ══════════════════════════════════════════════════════════════════════════ */

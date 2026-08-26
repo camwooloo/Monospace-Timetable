@@ -106,6 +106,26 @@ const COPIED: Copied[] = [
     theirs: "src/lib/timetable/vocab.ts",
     rewrites: [['} from "../../../convex/lib/timetable";', '} from "../timetable";']],
   },
+  /* ⭐ THE ROTA MODEL, AND IT IS THE FIRST PIN OUTSIDE `src/lib/`.
+     Everything above is the timetable spec, which lives under `lib/` on both
+     sides. `fillRota` is under `model/` here because it is not a primitive —
+     it is the whole feature — but it has the same reason to be pinned and a
+     stronger one: the SAME turn order has to come out of the free tool and out
+     of Monospace, or a school exports the workbook from one, records against
+     the other, and the two disagree about which rooms were due in week 8.
+     Nothing in the app would say so. */
+  {
+    ours: "src/model/rota.ts",
+    theirs: "convex/lib/rota.ts",
+    /* ⚠️ THE PAIR IS (THEIRS, OURS) — Monospace's line first, ours second.
+       Written the other way round it fails on the `toContain` above, which is
+       the guard doing its job: the assertion proves the rewrite is exactly
+       what was declared, not merely that something changed. */
+    rewrites: [['} from "./timetable";', '} from "../lib/timetable";']],
+  },
+  /* No rewrite at all — the presets import only from `./rota`, which is the
+     same relative path on both sides. A byte-for-byte copy. */
+  { ours: "src/model/rotaPresets.ts", theirs: "convex/lib/rotaPresets.ts", rewrites: [] },
 ];
 
 describe.skipIf(!haveMonospaceSource())("the copied spec", () => {
