@@ -126,6 +126,28 @@ const COPIED: Copied[] = [
   /* No rewrite at all — the presets import only from `./rota`, which is the
      same relative path on both sides. A byte-for-byte copy. */
   { ours: "src/model/rotaPresets.ts", theirs: "convex/lib/rotaPresets.ts", rewrites: [] },
+  /* ⭐⭐ THE ROTA WORKBOOK — the first WRITER on this list, and the one with the
+     most at stake. Every measurement in it was read out of a real school's
+     `IT_Room_Checking_Rota_2627_v2.xlsx`: ten column widths, a 22pt title row,
+     a 30pt header row, `ddd dd mmm yyyy`, three merged banner rows and 138
+     merges. Two copies of that drift into two files that look almost the same
+     and are not, and nobody notices until a school prints one.
+
+     ⚠️ THREE REWRITES, ALL IMPORT PATHS, AND THAT IS THE LIMIT. Monospace runs
+     on Node only, so its `workbookStream.ts` collapses the engine's Node and
+     browser halves into one file — deliberately keeping `createSink` and
+     `collectSink` under those names, because a rename there would force a
+     FOURTH rewrite here and that is the point at which a pin stops being worth
+     having and the copy should become a fork instead. */
+  {
+    ours: "src/workbook/rotaWorkbook.ts",
+    theirs: "src/lib/rotaWorkbook.ts",
+    rewrites: [
+      ['"./workbookStream"', '"./stream"'],
+      ['"../../convex/lib/timetableSheet"', '"../lib/timetableSheet"'],
+      ['"../../convex/lib/rota"', '"../model/rota"'],
+    ],
+  },
 ];
 
 describe.skipIf(!haveMonospaceSource())("the copied spec", () => {
