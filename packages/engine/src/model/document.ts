@@ -80,6 +80,7 @@
  *     a rename; nothing reads meaning out of them.
  */
 
+import type { SchoolRota } from "./rota";
 import {
   CYCLE_LENGTHS,
   DEFAULT_TAUGHT_WEEKDAYS,
@@ -419,6 +420,15 @@ export type SchoolDocument = {
    *  `pickAcademicYear()` is the one rule for that and it has five readers in
    *  Monospace, every one of which has had this bug at some point. */
   roomSheets: SchoolRoomSheet[];
+  /**
+   * ⭐ RECURRING CHECK ROTAS — IT rooms, fire doors, PAT testing, minibuses.
+   *
+   * ⚠️ OPTIONAL, AND ITS ABSENCE IS EXACTLY TODAY'S BEHAVIOUR, which is why it
+   * costs NO format version bump and no migration — rule 3 of this file's own
+   * banner. An older build handed a newer file still opens it, reports `rotas`
+   * in `unknownKeys`, and tells the school that saving will drop it.
+   */
+  rotas?: SchoolRota[];
   years: SchoolYear[];
 };
 
@@ -469,11 +479,16 @@ export type ReadResult =
     }
   | { ok: false; issue: SchoolDocumentIssue };
 
+/* ⚠️⚠️ TWO PLACES, ALWAYS. A key added here and NOT to the field-by-field
+   literal that `readSchoolDocument` returns stops being reported as unknown AND
+   is still silently dropped on every open/save round trip — the worst of both,
+   because the school is no longer even warned. */
 const TOP_LEVEL_KEYS = new Set([
   "formatVersion",
   "school",
   "export",
   "roomSheets",
+  "rotas",
   "years",
 ]);
 
@@ -549,23 +564,34 @@ export function readSchoolDocument(input: unknown): ReadResult {
     : [];
   const years = Array.isArray(doc.years) ? (doc.years as SchoolYear[]) : [];
 
-  if (years.length === 0) {
+  const rotas = Array.isArray(doc.rotas) ? (doc.rotas as SchoolRota[]) : [];
+
+  /* ⚠️⚠️ THESE TWO REFUSALS USED TO BE UNCONDITIONAL AND A ROTA-ONLY FILE COULD
+     NOT BE OPENED AT ALL. A school running a fire-door rota and nothing else has
+     no academic year and no room list, and refusing it would have made the
+     second feature unusable on its own — which is the whole point of it being a
+     second feature rather than a timetable screen.
+
+     So a file has to hold SOMETHING, and either is enough. A file holding
+     neither is still refused, because that is a file with no content at all and
+     "opened successfully" would be a lie about it. */
+  if (years.length === 0 && rotas.length === 0) {
     return {
       ok: false,
       issue: {
         code: "no-years",
         message:
-          "That file holds no academic year, so there is nothing to build a timetable from.",
+          "That file holds no academic year and no rota, so there is nothing in it to open.",
       },
     };
   }
-  if (roomSheets.length === 0) {
+  if (years.length > 0 && roomSheets.length === 0) {
     return {
       ok: false,
       issue: {
         code: "bad-room-sheet",
         message:
-          "That file holds no room list, so there are no columns to print. Add the rooms first.",
+          "That file holds an academic year with no room list, so there are no columns to print. Add the rooms first.",
       },
     };
   }
@@ -580,6 +606,9 @@ export function readSchoolDocument(input: unknown): ReadResult {
           ? (doc.export as SchoolExportOptions)
           : undefined,
       roomSheets,
+      /* ⚠️ HERE TOO — see the banner on TOP_LEVEL_KEYS. This literal is what is
+         actually returned; a key missing from it is a key dropped on save. */
+      rotas: rotas.length ? rotas : undefined,
       years,
     },
     unknownKeys,
