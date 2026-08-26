@@ -165,6 +165,23 @@ describe("the filler is safe on lists that would trap it", () => {
     expect(out[0].slots.map((s) => s.label)).toEqual(["Z", "Z"]);
   });
 
+  test("a quota larger than the list is still met, with half-weights", () => {
+    /* ⚠️ THE GUARD USED TO BE `active.length * 2 + 2`, so two half-weight items
+       with a quota of five got THREE slots instead of five — the rota quietly
+       doing less than the school asked for. */
+    const out = fillRota(
+      weeks(1),
+      [
+        { id: "a", code: "A", weight: 0.5 },
+        { id: "b", code: "B", weight: 0.5 },
+      ],
+      5,
+      true,
+    );
+    expect(out[0].slots).toHaveLength(5);
+    expect(out[0].slots.every((s) => s.label === "A + B")).toBe(true);
+  });
+
   test("one item and a quota of two gives it both turns", () => {
     const out = fillRota(weeks(1), [{ id: "only", code: "ONLY" }], 2, true);
     expect(out[0].slots.map((s) => s.label)).toEqual(["ONLY", "ONLY"]);

@@ -259,17 +259,32 @@ export function fillRota(
     }
 
     let filled = 0;
-    /* Bounded by the item count: even at weight 0.5 a period cannot need more
-       turns than there are items, and the guard means a pathological list
-       cannot hang the export. */
+    /**
+     * ⚠️⚠️ THE GUARD IS SIZED FROM THE WORK, NOT FROM THE ITEM COUNT.
+     *
+     * It was `active.length * 2 + 2`, on the reasoning that "even at weight 0.5
+     * a period cannot need more turns than there are items". That is false the
+     * moment the QUOTA exceeds the list: two half-weight items with a quota of
+     * five need ten picks and the guard allowed six, so the period came out
+     * with three slots instead of five — a rota silently doing less than the
+     * school asked for, with nothing to say so. The guard is there to stop a
+     * hang, and it was quietly changing the answer instead.
+     *
+     * Sized from the SMALLEST weight actually present: reaching `target` units
+     * needs at most `target / minWeight` picks, plus a lap of the list and a
+     * margin. `weightOf` already coerces a zero or negative weight to 1, so the
+     * divisor cannot be zero.
+     */
+    const minWeight = Math.min(...active.map(weightOf));
+    const limit = Math.ceil(target / minWeight) + active.length + 2;
     let guard = 0;
-    while (filled < target && guard < active.length * 2 + 2) {
+    while (filled < target && guard < limit) {
       const group: RotaItem[] = [];
       let groupWeight = 0;
 
       /* One SLOT is one printed row, and it takes whole items until it has a
          full turn's worth. A 1.0 fills it alone; two 0.5s share it. */
-      while (groupWeight < 1 && guard < active.length * 2 + 2) {
+      while (groupWeight < 1 && guard < limit) {
         const item = active[cursor % active.length];
         cursor++;
         guard++;
