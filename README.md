@@ -123,10 +123,16 @@ the timetable prints, so *Week A* and *Half Term* mean the same thing on both sh
 A school with no timetable in the file can give a rota its own start and end dates
 instead — you can run a fire-door rota and never touch the timetable half.
 
-**Two exports.** *With data* prints what has been recorded. *Blank template* prints the
-tick columns empty whatever is recorded — the copy that goes on the clipboard.
+**Then print it.** The workbook is two sheets: the rota itself, and everything on it with
+your own columns beside each row — *No of PCs*, *Telephone*, whatever you keep.
 
 ![Exporting the rota](docs/screenshots/09-rota-export.png)
+
+There are two export buttons, and in this tool they usually produce the same file.
+**It builds the sheet; it does not tick it off** — you print it and fill it in, which is
+what a clipboard rota is for. *With data* earns its keep when a rota has come **from**
+Monospace carrying checks somebody already recorded there; then it prints them, and
+*blank template* leaves the tick columns empty so you can carry a fresh one round.
 
 ---
 
@@ -138,15 +144,24 @@ save and the app says so.
 
 Nothing is uploaded. There is no server. Turn off the internet and it still works.
 
-Timetables and rotas live in the same file, so one `.json` is the school's year.
+Timetables and rotas live in the same file here, so one `.json` holds both.
 
-**And that same file opens in [Monospace](https://www.monospace.page), both ways.** If your school already
-uses Monospace, you can pull a year out of it as a `.timetable.json`, open it here, and build the
-workbook — or do the whole timetable here first and load it into Monospace when you're ready, without
-typing any of it twice. The dates, the cycle, the closures, the day, the rooms and the whole standing
-timetable come across, and so do your rotas — the list, the weights, the columns and
-anything already recorded against them. Bookings don't, and Monospace tells you what it
-could not bring over before it imports anything.
+**And that same file opens in [Monospace](https://www.monospace.page), both ways** — but the two
+halves travel by different doors, so it is worth knowing which is which.
+
+**The timetable** goes through Monospace's Organisation → Timetable. Pull a year out as a
+`.timetable.json`, open it here and build the workbook — or do the whole timetable here first and
+load it into Monospace without typing any of it twice. The dates, the cycle, the closures, the day,
+the rooms and the whole standing timetable come across. Bookings don't, and Monospace tells you what
+it could not bring over before it imports anything.
+
+**A rota** goes through the Rota section of whichever project owns it, one rota per import, because
+a rota belongs to a department rather than to the school. That file carries the list, the weights,
+the columns, the wording and any checks already recorded — plus the academic year it follows, so the
+week letters and holiday names come out the same on both sides.
+
+Loading a timetable file will not bring your rotas in with it, and importing a rota will not create
+an academic year. Each says so at the time.
 
 ---
 
