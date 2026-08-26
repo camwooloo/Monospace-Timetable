@@ -344,6 +344,33 @@ jobs:
     permissions:
       contents: write
     steps:
+      # ══════════════════════════════════════════════════════════════════
+      # ⚠️⚠️ FIRST, AND THE POSITION IS LOAD-BEARING
+      # ══════════════════════════════════════════════════════════════════
+      # This job used to work only on DOWNLOADED ARTEFACTS and never checked
+      # anything out. Then the release-notes guard below landed — it reads
+      # `release-notes/vX.Y.Z.md` from the REPOSITORY — and failed the whole
+      # v0.6.0 release with "release-notes/v0.6.0.md does not exist" while the
+      # file sat in the tag perfectly well. The error named the wrong cause:
+      # nothing was wrong with the notes, the job simply had no repo.
+      #
+      # ⚠️⚠️ AND IT MUST BE THE FIRST STEP, NOT ONE BESIDE THE GUARD.
+      # `actions/checkout` defaults to `clean: true`, which DELETES untracked
+      # files in the workspace — so a checkout placed just before the guard
+      # would wipe the `dist/` that "Gather them" has already assembled, and
+      # `fail_on_unmatched_files` would then fail the release for missing
+      # binaries that had built perfectly. On an empty workspace it can destroy
+      # nothing.
+      #
+      # ⭐ SPARSE, because this job wants exactly one directory, and cloning the
+      # whole tree to read one markdown file is a CI minute for nothing. Cone
+      # mode OFF so the pattern is read as a plain path rather than a cone.
+      - name: The release notes live in the repo, so fetch them
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: release-notes
+          sparse-checkout-cone-mode: false
+
       - uses: actions/download-artifact@v4
         with:
           path: artefacts
