@@ -185,3 +185,35 @@ export {
 } from "../../../packages/engine/src/index";
 
 export { numericValue } from "../../../packages/engine/src/index";
+
+/* ── ⭐ ROTA ─────────────────────────────────────────────────────────────
+   The recurring-check half: a list, a cadence, a quota and a column set. It
+   shares the date arithmetic and the calendar vocabulary with the timetable
+   and nothing else — `bufferRotaWorkbook` is a SEPARATE writer, for the reason
+   written over it. Same rule as everything above: go through the barrel. */
+export {
+  ROTA_CADENCES,
+  ROTA_PRESETS,
+  bufferRotaWorkbook,
+  buildRota,
+  fillRota,
+  groupingsLine,
+  ownFrames,
+  presetColumns,
+  recordKey,
+  rotaPreset,
+  yearFrames,
+} from "../../../packages/engine/src/index";
+export type {
+  RotaCadence,
+  RotaColumn,
+  RotaColumnKind,
+  RotaFrame,
+  RotaItem,
+  RotaPeriod,
+  RotaBuildResult,
+  RotaPreset,
+  RotaRecord,
+  RotaSlot,
+  SchoolRota,
+} from "../../../packages/engine/src/index";

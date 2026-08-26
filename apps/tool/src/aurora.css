@@ -323,6 +323,42 @@ html[data-theme="light"] .bg::after {
   height: 100%;
 }
 
+/* ── ⭐ THE TAB STRIP ────────────────────────────────────────────────────
+   Timetable / Rota, above the top bar and INSIDE `.page`.
+
+   ⚠️ INSIDE `.page`, NOT ABOVE `#app` — see the `tabstrip()` banner in
+   `main.ts` and the `.page` banner above. A strip above `#app` is added to a
+   `height: 100%` grid inside an `overflow: hidden` body, so it does not shrink
+   anything: it pushes the rail and the top bar off the bottom and the WINDOW
+   scrolls instead of the content. `flex: none` here, `flex: 1` on `.scroll`,
+   and the scrollport absorbs it.
+
+   ⚠️ NO BOTTOM BORDER. The top bar directly below already draws one, and two
+   hairlines 39px apart read as a stray rule rather than as two surfaces. */
+.tabstrip {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 10px 22px 0;
+}
+.tabstrip .seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.tabstrip .seg button svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tabstrip .seg button[aria-pressed="true"] svg {
+  color: var(--accent);
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -807,6 +843,122 @@ table.list select {
   border-radius: 9px;
   font-size: 12.5px;
 }
+/* ── ⭐ THE ROTA SCREENS ─────────────────────────────────────────────────
+   Everything here is a modifier on furniture that already exists — the list
+   table, the pill, the card — rather than a second set of primitives. Two
+   parallel table styles is how the app ends up with two table styles that
+   disagree about row height.
+
+   ⚠️ `.cell` IS NOT `table.tt input.cell`. That one is the grid's borderless
+   in-cell editor, scoped to `table.tt` precisely so it cannot leak; this is a
+   plain field inside `table.list`, which already styles bare `input` and
+   `select`. The class here only carries a WIDTH. */
+.cell {
+  width: 100%;
+  min-width: 0;
+}
+.cell.wide {
+  min-width: 190px;
+}
+.cell.narrow {
+  width: 82px;
+}
+
+/* Out of service. ⚠️ DIMMED AND STILL EDITABLE — taking something out of a
+   rota is not deleting it, and the whole point is that what it recorded stays
+   readable. `opacity` on the row and nothing on the controls. */
+table.list tr.retired td {
+  opacity: 0.5;
+}
+table.list tr.dim td {
+  opacity: 0.55;
+}
+
+/* ⚠️ THE ROTA PREVIEW IS TALLER THAN THE DEFAULT 62vh. A 46-week rota at the
+   default height shows nine rows, which is not enough to see the wrap that
+   makes the turn order make sense. */
+.tablewrap.tall {
+  max-height: 72vh;
+}
+
+/* An in-table verb that is a word rather than an icon, for the two-state
+   things where the STATE is what you want to read at a glance. */
+.linky {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--stroke-2);
+  border-radius: 999px;
+  padding: 3px 11px;
+  background: var(--glass);
+  color: var(--text-mute);
+  cursor: pointer;
+  transition:
+    color 0.16s var(--ease),
+    border-color 0.16s var(--ease);
+}
+.linky:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ── The preset cards ───────────────────────────────────────────────────
+   ⚠️ `auto-fill` AND A `minmax` FLOOR, not a fixed column count. Eight presets
+   at three fixed columns leave a two-card orphan row on a laptop and overflow
+   the modal on a phone; this reflows to one column under 360px of content box
+   and the dialog stays usable at 375px. */
+.presetgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+.preset {
+  text-align: left;
+  font: inherit;
+  padding: 13px 14px;
+  border: 1px solid var(--stroke);
+  border-radius: 16px;
+  background: var(--glass);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition:
+    border-color 0.18s var(--ease),
+    background 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+.preset:hover {
+  border-color: var(--stroke-2);
+  background: var(--glass-2);
+  transform: translateY(-1px);
+}
+.preset[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--glass-hi);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.3);
+}
+.pname {
+  font-weight: 700;
+  font-size: 13px;
+}
+.pblurb {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  line-height: 1.4;
+}
+.pmeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pmeta .pill {
+  font-size: 9.5px;
+}
+
 .tablewrap {
   overflow: auto;
   max-height: 62vh;
@@ -1402,6 +1554,9 @@ table.tt input.cell:disabled {
 @media (max-width: 760px) {
   #app {
     grid-template-columns: 68px 1fr;
+  }
+  .tabstrip {
+    padding: 8px 14px 0;
   }
   .topbar {
     padding: 10px 14px;

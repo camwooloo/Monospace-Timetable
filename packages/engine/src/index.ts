@@ -223,3 +223,38 @@ export type {
   GridPx,
   GridSurfaces,
 } from "./lib/timetableSheet";
+
+/* ── ⭐ ROTA — the recurring-check half ──────────────────────────────────
+   Its own model, its own filler and its own workbook writer, sharing only the
+   date arithmetic and the calendar vocabulary with the timetable.
+
+   ⚠️ `bufferRotaWorkbook` IS A SEPARATE WRITER, NOT A MODE OF
+   `bufferTimetableWorkbook`. That one is byte-pinned by `provenance.test.ts`
+   and regenerated member-by-member by `npm run gate`; a second layout inside it
+   would put both in the way of every future rota change. The ~30 duplicated
+   lines of style primitives are the deliberate price. */
+export {
+  ROTA_CADENCES,
+  fillRota,
+  groupingsLine,
+  ownFrames,
+  recordKey,
+  yearFrames,
+} from "./model/rota";
+export type {
+  RotaCadence,
+  RotaColumn,
+  RotaColumnKind,
+  RotaFrame,
+  RotaItem,
+  RotaPeriod,
+  RotaRecord,
+  RotaSlot,
+  SchoolRota,
+} from "./model/rota";
+export { ROTA_PRESETS, presetColumns, rotaPreset } from "./model/rotaPresets";
+export { buildRota } from "./model/rotaBuild";
+export type { RotaBuildResult } from "./model/rotaBuild";
+export type { RotaPreset } from "./model/rotaPresets";
+export { bufferRotaWorkbook } from "./workbook/rotaWorkbook";
+export type { RotaWorkbookModel } from "./workbook/rotaWorkbook";

@@ -31,12 +31,15 @@ import {
   replaceDocument,
   screen,
   setScreen,
+  setTab,
   setTheme,
   subscribe,
   suggestedDocName,
+  tab,
   theme,
   yearNow,
   type Screen,
+  type Tab,
 } from "./store";
 import { emptySchoolDocument, readSchoolDocument } from "./engine";
 import { yearScreen } from "./screens/year";
@@ -47,6 +50,10 @@ import { templatesScreen } from "./screens/templates";
 import { weeksScreen } from "./screens/weeks";
 import { customiseScreen } from "./screens/customise";
 import { exportScreen } from "./screens/exportScreen";
+import { rotaListScreen } from "./screens/rotaList";
+import { rotaScheduleScreen } from "./screens/rotaSchedule";
+import { rotaColumnsScreen } from "./screens/rotaColumns";
+import { rotaExportScreen } from "./screens/rotaExport";
 import { aboutScreen, REPO_URL } from "./screens/about";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -60,17 +67,32 @@ type RailItem = { id: Screen; label: string; icon: string; title: string };
  * on each other: the year has to exist before a closure can interrupt it,
  * the day before a grid has rows, the rooms before it has columns, and the
  * templates before a week can be a change TO one.
+ *
+ * ⚠️ ONE RAIL PER TAB, and `Record<Tab, …>` so the compiler refuses a tab with
+ * no rail. The Year and Closed screens are NOT repeated in the Rota rail even
+ * though a rota can follow the school year — a second door onto the same screen
+ * would leave somebody wondering which of the two "Year"s they had edited.
+ * The Rota's own dates live on its own List screen; the school year is the
+ * school's, and it is edited where the school year is edited.
  */
-const RAIL: RailItem[] = [
-  { id: "year", label: "Year", icon: "calendar", title: "The academic year and its cycle" },
-  { id: "closures", label: "Closed", icon: "ban", title: "Holidays, bank holidays, INSET" },
-  { id: "day", label: "Day", icon: "clock", title: "Periods, breaks and times" },
-  { id: "rooms", label: "Rooms", icon: "door", title: "The printed columns and what they record" },
-  { id: "templates", label: "Grid", icon: "grid", title: "The standing timetable" },
-  { id: "weeks", label: "Weeks", icon: "swap", title: "Change one week" },
-  { id: "customise", label: "Colour", icon: "palette", title: "The school's own colour" },
-  { id: "export", label: "Export", icon: "download", title: "Build the workbook" },
-];
+const RAILS: Record<Tab, RailItem[]> = {
+  timetable: [
+    { id: "year", label: "Year", icon: "calendar", title: "The academic year and its cycle" },
+    { id: "closures", label: "Closed", icon: "ban", title: "Holidays, bank holidays, INSET" },
+    { id: "day", label: "Day", icon: "clock", title: "Periods, breaks and times" },
+    { id: "rooms", label: "Rooms", icon: "door", title: "The printed columns and what they record" },
+    { id: "templates", label: "Grid", icon: "grid", title: "The standing timetable" },
+    { id: "weeks", label: "Weeks", icon: "swap", title: "Change one week" },
+    { id: "customise", label: "Colour", icon: "palette", title: "The school's own colour" },
+    { id: "export", label: "Export", icon: "download", title: "Build the workbook" },
+  ],
+  rota: [
+    { id: "rota-list", label: "List", icon: "label", title: "What gets checked, and how often each takes a turn" },
+    { id: "rota-schedule", label: "Rota", icon: "calendar", title: "The generated turn order, week by week" },
+    { id: "rota-columns", label: "Columns", icon: "grid", title: "What gets filled in when somebody checks" },
+    { id: "rota-export", label: "Export", icon: "download", title: "Build the rota workbook" },
+  ],
+};
 
 function rail(): HTMLElement {
   const current = screen();
@@ -79,7 +101,7 @@ function rail(): HTMLElement {
     "nav.rail",
     { "aria-label": "Sections" },
     h("div.mark", { title: "Monospace Timetable" }, mark(40)),
-    ...RAIL.map((item) =>
+    ...RAILS[tab()].map((item) =>
       h(
         "button.rail-btn",
         {
@@ -138,6 +160,61 @@ function rail(): HTMLElement {
         },
         icon("info"),
         "About",
+      ),
+    ),
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ⭐ THE TABS
+   ══════════════════════════════════════════════════════════════════════════
+
+   Two things in one file: the standing timetable, and the recurring checks
+   that run alongside it. Both belong to the same school and the same saved
+   `.json`, which is why they are tabs rather than two programs.
+
+   ⚠️ IT IS A CHILD OF `.page`, ABOVE `.topbar` — NOT A ROW ABOVE `#app`.
+   `body` is `height: 100%; overflow: hidden` and `#app` is `height: 100%`, so
+   a strip added as a sibling above `#app` has its height ADDED to a
+   full-height grid and is clipped by the body. That is exactly the layout bug
+   the `.page` banner in `aurora.css` records, measured at
+   `window.scrollY === 634`. `.page` is already a `min-height: 0` column whose
+   only `flex: 1` child is `.scroll`, so a `flex: none` strip is absorbed by
+   the scrollport shrinking and nothing else moves.
+
+   ⚠️ AND THE TAB IS DERIVED FROM THE SCREEN, never stored beside it — see
+   `TAB_OF` in `store.ts`. That is what keeps `guide.ts` working untouched:
+   the guide sets a screen and the rail follows it, where a separately-stored
+   tab would have left `applyRing`'s `querySelector` returning `null` and a
+   step silently un-ringed with no error anywhere. */
+
+const TABS: Array<{ id: Tab; label: string; icon: string; title: string }> = [
+  { id: "timetable", label: "Timetable", icon: "grid", title: "The standing room timetable" },
+  { id: "rota", label: "Rota", icon: "check", title: "Recurring checks — rooms, extinguishers, minibuses" },
+];
+
+function tabstrip(): HTMLElement {
+  const now = tab();
+  return h(
+    "div.tabstrip",
+    null,
+    h(
+      "div.seg",
+      { role: "tablist", "aria-label": "Section" },
+      ...TABS.map((t) =>
+        h(
+          "button",
+          {
+            type: "button",
+            role: "tab",
+            "aria-pressed": String(now === t.id),
+            "aria-selected": String(now === t.id),
+            title: t.title,
+            onclick: () => setTab(t.id),
+          },
+          icon(t.icon, 14),
+          t.label,
+        ),
       ),
     ),
   );
@@ -530,6 +607,10 @@ const SCREENS: Record<Screen, () => HTMLElement> = {
   weeks: weeksScreen,
   customise: customiseScreen,
   export: exportScreen,
+  "rota-list": rotaListScreen,
+  "rota-schedule": rotaScheduleScreen,
+  "rota-columns": rotaColumnsScreen,
+  "rota-export": rotaExportScreen,
   about: aboutScreen,
 };
 
@@ -539,6 +620,7 @@ function render() {
   const page = h(
     "div.page",
     null,
+    tabstrip(),
     topbar(),
     h("div.scroll", { id: "scroll" }, SCREENS[screen()]()),
   );

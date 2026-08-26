@@ -42,6 +42,7 @@ import {
   readSchoolDocument,
   todayCivil,
   type SchoolDocument,
+  type SchoolRota,
   type SchoolYear,
 } from "./engine";
 
@@ -81,7 +82,53 @@ export type Screen =
   | "weeks"
   | "customise"
   | "export"
+  | "rota-list"
+  | "rota-schedule"
+  | "rota-columns"
+  | "rota-export"
   | "about";
+
+/**
+ * ⭐⭐ TWO TABS, ONE FLAT `Screen` UNION — AND THAT IS THE DESIGN DECISION.
+ *
+ * The obvious shape is a screen id scoped per tab (`{tab, screen}`), and it is
+ * wrong here for two reasons that both bite silently:
+ *
+ * ⚠️ 1. `SCREENS` IN `main.ts` IS `Record<Screen, …>`, so a flat union is what
+ * makes the COMPILER refuse a new screen with no renderer. Scoping the id would
+ * turn that into a runtime `undefined` and a blank page.
+ *
+ * ⚠️ 2. THE GUIDE RINGS BY `data-screen` (`guide.ts` → `applyRing`). Ids that
+ * repeated across tabs would make `querySelector` return whichever rail button
+ * rendered first — right until somebody added "Export" to the Rota tab, which
+ * is exactly what this does. So `rota-export` and `export` are different ids on
+ * purpose, and they read as different ids to a human too.
+ *
+ * The tab is therefore DERIVED from the screen, never stored alongside it. One
+ * source of truth means `setScreen` cannot leave the two disagreeing — the rail
+ * showing Rota while the page draws the grid — which is the class of bug the
+ * `setScreen` early-return in `guide.ts` already records.
+ */
+export type Tab = "timetable" | "rota";
+
+export const TAB_OF: Record<Screen, Tab> = {
+  year: "timetable",
+  closures: "timetable",
+  day: "timetable",
+  rooms: "timetable",
+  templates: "timetable",
+  weeks: "timetable",
+  customise: "timetable",
+  export: "timetable",
+  "rota-list": "rota",
+  "rota-schedule": "rota",
+  "rota-columns": "rota",
+  "rota-export": "rota",
+  /* ⚠️ ABOUT BELONGS TO NEITHER and is filed under the timetable so the tab
+     strip has something highlighted. It is reached from the rail foot, which is
+     drawn on both tabs. */
+  about: "timetable",
+};
 
 export type Theme = "dark" | "light";
 
@@ -89,6 +136,11 @@ type State = {
   doc: SchoolDocument;
   /** Which year every screen is editing. ⚠️ NEVER `years[0]` — see `yearNow`. */
   yearId: string | null;
+  /** Which rota the Rota tab is editing. ⚠️ Unlike the year there is no "pick
+   *  the current one" rule to fall back on — a rota has no dates of its own
+   *  until somebody gives it some — so this IS `rotas[0]` when unset, and that
+   *  is correct rather than the year bug wearing a different hat. */
+  rotaId: string | null;
   screen: Screen;
   /** Unsaved changes since the last write to a file. */
   dirty: boolean;
@@ -104,6 +156,7 @@ type State = {
 const state: State = {
   doc: emptySchoolDocument(),
   yearId: null,
+  rotaId: null,
   screen: "year",
   dirty: false,
   filename: null,
@@ -145,6 +198,7 @@ export function repaint() {
 
 export const doc = () => state.doc;
 export const screen = () => state.screen;
+export const tab = (): Tab => TAB_OF[state.screen];
 export const theme = () => state.theme;
 export const isDark = () => state.theme === "dark";
 export const isDirty = () => state.dirty;
@@ -194,6 +248,27 @@ export function setScreen(s: Screen) {
   if (state.screen === s) return;
   state.screen = s;
   repaint();
+}
+
+/**
+ * Switch tabs. Lands on the tab's first screen, or on the one it was left on.
+ *
+ * ⚠️ IT REMEMBERS, and that is not a nicety — somebody filling in a rota's
+ * schedule who flips to the timetable to check a week letter should come back
+ * to the schedule, not to the item list. Per-session only: it is which face of
+ * a thing you last used, which CLAUDE.md files under per-device preference,
+ * and this app has no user document to dirty with it anyway.
+ */
+const LAST_SCREEN: Record<Tab, Screen> = { timetable: "year", rota: "rota-list" };
+
+export function setTab(t: Tab) {
+  if (TAB_OF[state.screen] === t) return;
+  /* ⚠️ ABOUT IS NOT REMEMBERED AS A TAB'S LAST SCREEN. It is filed under
+     `timetable` so the strip has something lit, but it belongs to neither tab
+     — remembering it would make "Rota, then Timetable" land back on the
+     licence page rather than on the work. */
+  if (state.screen !== "about") LAST_SCREEN[TAB_OF[state.screen]] = state.screen;
+  setScreen(LAST_SCREEN[t]);
 }
 
 export function setYearId(id: string | null) {
@@ -259,6 +334,73 @@ export function editYear(mutate: (y: SchoolYear) => void) {
     const y = d.years.find((yy) => yy.id === id);
     if (y) mutate(y);
   });
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   WHICH ROTA
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * The rota the Rota tab is editing, or `null` when the document holds none.
+ *
+ * ⚠️ `rotas[0]` IS THE RIGHT FALLBACK HERE and it is NOT the `years[0]` bug.
+ * A year has dates, so "which one did they mean" has a real answer and
+ * `pickAcademicYear` is it. A rota has no dates until somebody gives it some,
+ * and a school with a fire-door rota and a minibus rota has no ordering between
+ * them at all — so the first one is the honest answer rather than a guess
+ * dressed up as one.
+ */
+export function rotaNow(): SchoolRota | null {
+  const rotas = state.doc.rotas ?? [];
+  if (rotas.length === 0) return null;
+  if (state.rotaId) {
+    const found = rotas.find((r) => r.id === state.rotaId);
+    if (found) return found;
+  }
+  return rotas[0];
+}
+
+export function setRotaId(id: string | null) {
+  state.rotaId = id;
+  repaint();
+}
+
+/** Edit the rota every Rota screen is on. A no-op when there is none. */
+export function editRota(mutate: (r: SchoolRota) => void) {
+  const id = rotaNow()?.id;
+  if (!id) return;
+  edit((d) => {
+    const r = d.rotas?.find((rr) => rr.id === id);
+    if (r) mutate(r);
+  });
+}
+
+/**
+ * ⚠️ `rotas` IS AN OPTIONAL KEY AND STAYS ONE. A document that has never held a
+ * rota must round-trip WITHOUT the key — the format's rule 3 is that an absent
+ * optional field reproduces today's behaviour exactly, and writing `rotas: []`
+ * into every file the tool touches would put a new key into every school's
+ * saved timetable for a feature they have not used. So this is the one place
+ * that creates the array.
+ */
+export function addRota(rota: SchoolRota) {
+  edit((d) => {
+    if (!d.rotas) d.rotas = [];
+    d.rotas.push(rota);
+  });
+  state.rotaId = rota.id;
+}
+
+export function removeRota(id: string) {
+  edit((d) => {
+    if (!d.rotas) return;
+    d.rotas = d.rotas.filter((r) => r.id !== id);
+    /* ⚠️ BACK TO ABSENT, NOT TO AN EMPTY ARRAY — see `addRota`. Deleting the
+       last rota must leave the file byte-identical to one that never had one,
+       or "I removed it" leaves a trace in the JSON for ever. */
+    if (d.rotas.length === 0) delete d.rotas;
+  });
+  if (state.rotaId === id) state.rotaId = null;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
