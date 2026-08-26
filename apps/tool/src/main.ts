@@ -17,6 +17,7 @@ import { button, h, icon } from "./dom";
 import { mark } from "./logo";
 import { openGuide, startGuide } from "./guide";
 import { host, isShell, onShellBoot, onUpdate, type UpdateState } from "./host";
+import { appReleaseNotes, markNoteOverflow, markdown } from "./markdown";
 import { closeModal, confirmDialog, openModal, toast } from "./ui";
 import {
   backupInfo,
@@ -502,21 +503,37 @@ function showUpdate(state: UpdateState) {
       setTimeout(show, 900);
       return;
     }
+    /* ⭐ THE NOTES ARE MARKDOWN AND ARE NOW RENDERED AS MARKDOWN. They used to
+       go into `openModal`'s `hint`, which is a plain text node — so a release
+       note written the way every release note is written printed its own
+       syntax: `## What changed` and `- **Fixed** the thing`, verbatim, to a
+       school. See `markdown.ts`.
+
+       ⚠️ AND ONLY THE PART ABOVE THE MARKER. A release body carries the
+       standing "which file do I want / Windows will warn you" guidance for the
+       benefit of the release PAGE; somebody reading this dialog has already
+       got the app, and three screens of download advice is how the two
+       sentences that matter get scrolled past. */
+    const notes = appReleaseNotes(state.notes);
     openModal(
       `Version ${state.version} is available`,
-      state.notes.trim() ||
-        "A newer version of Monospace Timetable has been released.",
-      state.canApply
-        ? null
-        : /* ⚠️ WHY IT CANNOT INSTALL ITSELF, in the shell's own words: a
-             read-only share, or Program Files without admin. Without the
-             reason this is a button that does nothing and no explanation. */
-          h(
-            "p.hint",
-            null,
-            state.reason ||
-              "This copy cannot replace itself where it is stored, so the new version has to be downloaded by hand.",
-          ),
+      notes ? null : "A newer version of Monospace Timetable has been released.",
+      h(
+        "div",
+        null,
+        notes ? markdown(notes) : null,
+        state.canApply
+          ? null
+          : /* ⚠️ WHY IT CANNOT INSTALL ITSELF, in the shell's own words: a
+               read-only share, or Program Files without admin. Without the
+               reason this is a button that does nothing and no explanation. */
+            h(
+              "p.hint",
+              null,
+              state.reason ||
+                "This copy cannot replace itself where it is stored, so the new version has to be downloaded by hand.",
+            ),
+      ),
       [
         button("Not now", { cls: "ghost", onclick: closeModal }),
         state.canApply
@@ -541,6 +558,12 @@ function showUpdate(state: UpdateState) {
             }),
       ],
     );
+    /* ⚠️ AFTER `openModal`, BECAUSE THE NODE HAS NO LAYOUT BEFORE IT.
+       `scrollHeight` and `clientHeight` are both 0 on a node that is not in
+       the document, so measuring inside `markdown()` would always conclude the
+       note fits. See `markNoteOverflow`. */
+    const rendered = document.querySelector<HTMLElement>("#modal .md");
+    if (rendered) markNoteOverflow(rendered);
   };
   show();
 }

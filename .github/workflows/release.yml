@@ -366,6 +366,54 @@ jobs:
           fi
           ls -la dist
 
+      # ══════════════════════════════════════════════════════════════════
+      # ⭐ WHAT ACTUALLY CHANGED, WRITTEN BY HAND
+      # ══════════════════════════════════════════════════════════════════
+      # `generate_release_notes: true` produced a list of commit subjects. That
+      # is a changelog for whoever wrote the commits and not for a school IT
+      # technician deciding whether to update — and it is what the UPDATE
+      # DIALOG shows, in the app, to that person.
+      #
+      # So: one hand-written `release-notes/vX.Y.Z.md` per release. It is the
+      # body, and GitHub's generated list is appended UNDER the marker, where
+      # the release page keeps it and the app does not show it.
+      #
+      # ⚠️ A MISSING FILE IS A FAILED RELEASE, NOT A QUIET FALL-BACK. Falling
+      # back to the generated list would ship exactly the thing this replaces,
+      # on the one release nobody remembered to write notes for — and it would
+      # look like it worked.
+      - name: The release notes must exist and say something
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          notes="release-notes/${GITHUB_REF_NAME}.md"
+          if [ ! -f "$notes" ]; then
+            echo "::error::$notes does not exist."
+            echo "Every release carries hand-written notes: they are the release body AND"
+            echo "what the in-app update dialog shows. Write $notes, commit it, move the tag."
+            ls -la release-notes 2>/dev/null || true
+            exit 1
+          fi
+          # ⚠️ A FILE THAT EXISTS AND SAYS NOTHING IS THE SAME FAILURE WEARING
+          # A DIFFERENT HAT — the dialog falls back to "a newer version has
+          # been released", which is what it said before any of this.
+          if [ "$(tr -d '[:space:]' < "$notes" | wc -c | tr -d ' ')" -lt 40 ]; then
+            echo "::error::$notes is under 40 characters of actual content."
+            exit 1
+          fi
+          # ⚠️ AND IT MUST NOT CARRY THE MARKER ITSELF. The workflow appends it;
+          # a second one would cut the notes at whichever came first.
+          if grep -qF '<!-- app:end -->' "$notes"; then
+            echo "::error::$notes contains the app:end marker. The workflow appends it — remove it."
+            exit 1
+          fi
+          echo "notes<<MONOSPACE_NOTES_EOF" >> "$GITHUB_ENV"
+          cat "$notes" >> "$GITHUB_ENV"
+          printf '\nMONOSPACE_NOTES_EOF\n' >> "$GITHUB_ENV"
+          echo "--- $notes ---"
+          cat "$notes"
+
       - uses: softprops/action-gh-release@v2
         with:
           files: |
@@ -374,12 +422,23 @@ jobs:
           # A missing download is worse than a failed release: the release page
           # looks complete and one of the two links is not there.
           fail_on_unmatched_files: true
-          generate_release_notes: true
-          append_body: true
+          # ⚠️⚠️ OFF, AND THE ORDERING IS WHY — NOT A PREFERENCE.
+          # `append_body: true` appends `body` AFTER the generated list, so the
+          # generated list is always FIRST. The app cuts at the marker and takes
+          # everything above it, which would then be the commit list plus the
+          # hand-written notes — the exact thing this change exists to stop,
+          # shipped while looking fixed.
+          #
+          # The commits are still one click away: the link below the marker
+          # points at them, on a URL that needs no lookup to build.
+          generate_release_notes: false
           # ⚠️ Said on EVERY release, because the person downloading is a school
           # IT technician meeting an unsigned binary for the first time and the
           # release page is where they are standing when it happens.
           body: |
+            ${{ env.notes }}
+
+            <!-- app:end -->
 
             ---
 
@@ -405,3 +464,5 @@ jobs:
             It does exactly the same job.
 
             Bug reports welcome. There is no SLA — see the README.
+
+            [Every commit in this release](https://github.com/${{ github.repository }}/commits/${{ github.ref_name }})
