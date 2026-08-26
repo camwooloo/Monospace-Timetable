@@ -216,11 +216,22 @@ function writeRotaSheet(
   /* ⚠️ GENERATED, NOT TYPED. The reference file's subtitle says "Two rooms
      checked each week…" and somebody maintained that number by hand, so it
      could disagree with the quota below it. This reads the quota. */
+  /* ⚠️ THE FIRST PERIOD IS NOT A SAMPLE OF THE ROTA. With
+     `runThroughClosures` off, period 1 can be a closed week naming NOBODY —
+     and reading its slot count printed "0 items checked each week" across the
+     top of a school's rota. The busiest period is the honest measure of what
+     the rota does, and `quota` is the floor when every period is closed.
+
+     ⚠️ AND IT SAYS THE SCHOOL'S OWN NOUN. "items" is what the code calls them;
+     "rooms" is what the school does, and `itemNoun` already carries it. */
+  const perPeriod = Math.max(
+    rota.quota,
+    ...model.periods.map((p) => p.slots.length),
+  );
+  const subNoun = (rota.itemNoun?.trim() || "item").toLowerCase();
   sub.getCell(1).value =
     rota.subtitle?.trim() ||
-    `${model.periods[0]?.slots.length ?? rota.quota} ${
-      (model.periods[0]?.slots.length ?? rota.quota) === 1 ? "item" : "items"
-    } checked each ${cadenceWord(rota.cadence)}.`;
+    `${perPeriod} ${perPeriod === 1 ? subNoun : subNoun + "s"} checked each ${cadenceWord(rota.cadence)}.`;
   sub.getCell(1).alignment = CENTRE;
   for (let c = 1; c <= last; c++) sub.getCell(c).fill = fill(fills.structure);
 
@@ -231,6 +242,21 @@ function writeRotaSheet(
   groups.getCell(1).value = line ? `Grouped and checked together: ${line}` : "";
   groups.getCell(1).alignment = CENTRE;
   for (let c = 1; c <= last; c++) groups.getCell(c).fill = fill(fills.structure);
+
+  /* ⚠️⚠️ THE THREE BANNER ROWS ARE MERGED, AND THEY WERE NOT.
+     MEASURED against the reference workbook: it carries `A1:J1`, `A2:J2` and
+     `A3:J3`, and this writer produced 135 merges to its 138 — a difference
+     first mis-explained as its extra hand-typed final row, which it also has.
+     Unmerged, the title is a value in A1 that Excel clips at the B1 boundary
+     the moment B1 is not empty, so a school's rota name is truncated on the
+     first row of its own sheet.
+
+     ⚠️ MERGED AFTER THE ROWS ARE BUILT AND BEFORE `commit()` — the streaming
+     worksheet throws on `mergeCells` once a row has been committed, which is
+     the ordering rule the file's own banner states. */
+  ws.mergeCells(1, 1, 1, last);
+  ws.mergeCells(2, 1, 2, last);
+  ws.mergeCells(3, 1, 3, last);
 
   /* ── the header ─────────────────────────────────────────────────────── */
   const head = ws.getRow(4);
@@ -288,10 +314,30 @@ function writeRotaSheet(
             ? rota.records?.[`${period.start}#${i}`]?.[col.id]
             : undefined;
         if (recorded !== undefined && recorded !== null && recorded !== "") {
-          cell.value = col.kind === "number" || col.kind === "temperature" ? Number(recorded) : recorded;
-          if (col.kind === "date") {
-            cell.value = new Date(`${recorded}T00:00:00Z`);
-            cell.numFmt = DATE_FORMAT;
+          /* ⚠️⚠️ THE COERCION HAS TO BE ABLE TO FAIL, AND FAIL BACK TO THE TEXT.
+             A column's `kind` is what the school chose for it, not a promise
+             about what anybody typed into it: a "Pass / Fail" written into a
+             number column, or "next week" into a date one, are both ordinary.
+
+             `Number("Pass")` is NaN and `new Date("next weekT00:00:00Z")` is an
+             Invalid Date, and exceljs writes those into the sheet as the literal
+             text `NaN` and as a `#VALUE!`-shaped cell — so the school's own
+             answer is REPLACED by a machine's confusion about it. Falling back
+             to the text keeps what somebody wrote, which is the only thing the
+             sheet is for. */
+          if (col.kind === "number" || col.kind === "temperature") {
+            const n = Number(recorded);
+            cell.value = Number.isFinite(n) ? n : recorded;
+          } else if (col.kind === "date") {
+            const d = new Date(`${recorded}T00:00:00Z`);
+            if (Number.isFinite(d.getTime())) {
+              cell.value = d;
+              cell.numFmt = DATE_FORMAT;
+            } else {
+              cell.value = recorded;
+            }
+          } else {
+            cell.value = recorded;
           }
         }
         cell.alignment = col.kind === "text" ? LEFT : CENTRE;

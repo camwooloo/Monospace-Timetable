@@ -347,32 +347,64 @@ export function yearFrames(
     label: string | null;
     cycleWeek: number | null;
     isTeachingWeek: boolean;
+    /**
+     * ⚠️ THE TWO DAY-LEVEL LISTS, AND THEY ONLY MATTER FOR `daily`.
+     *
+     * Every other cadence is a WEEK, and a week's own `isTeachingWeek` answers
+     * it. A DAILY rota is days, and the week-level flag cannot: a Mon–Thu
+     * school teaches four days and a week holding one INSET day teaches four
+     * of five. `taughtWeekdaysOf` and the two grids read exactly this pair for
+     * exactly this reason — see the granularity trap banner in `timetable.ts`.
+     *
+     * Optional, because a caller with only week-level facts still gets the old
+     * behaviour rather than an error.
+     */
+    closedWeekdays?: readonly number[];
+    untaughtWeekdays?: readonly number[];
   }>,
   cadence: RotaCadence,
 ): RotaFrame[] {
   const every = cadence === "fortnightly" ? 2 : cadence === "monthly" ? 4 : cadence === "termly" ? 13 : 1;
 
-  const weekly = weeks
-    .filter((_, i) => i % every === 0)
-    .map((w) => ({
-      start: w.monday,
-      label: w.label,
-      cycleWeek: w.cycleWeek,
-      teaching: w.isTeachingWeek,
-    }));
+  const picked = weeks.filter((_, i) => i % every === 0);
+  const weekly = picked.map((w) => ({
+    start: w.monday,
+    label: w.label,
+    cycleWeek: w.cycleWeek,
+    teaching: w.isTeachingWeek,
+  }));
 
   if (cadence !== "daily") return weekly;
 
-  /* A daily rota over an academic year is every taught weekday of it. The
-     week's own teaching flag carries down to its five days. */
+  /**
+   * ⚠️⚠️ A DAILY ROTA IS THE TAUGHT WEEKDAYS, NOT MONDAY TO FRIDAY.
+   *
+   * This emitted five days a week unconditionally while its own comment
+   * claimed it emitted "every taught weekday" — so a Mon–Thu school got a
+   * Friday row every week of the year, and a week holding one INSET day got a
+   * row for the day the school was shut. Somebody would have had to tick, or
+   * explain, a check on a day nobody was in the building.
+   *
+   * ⚠️ THE WEEK-LEVEL FLAG STILL APPLIES ON TOP. A closed WEEK produces its
+   * days with `teaching: false` rather than producing none, because the row
+   * has to survive for `runThroughClosures` to have anything to run through —
+   * the same reason a closed week keeps its row everywhere else.
+   */
   const out: RotaFrame[] = [];
-  for (const w of weekly) {
+  picked.forEach((week, i) => {
+    const frame = weekly[i];
+    const skip = new Set<number>([
+      ...(week.closedWeekdays ?? []),
+      ...(week.untaughtWeekdays ?? []),
+    ]);
     for (let d = 0; d < 5; d++) {
-      const day = addDays(w.start, d);
+      /* `d` is an offset from Monday; the lists are weekdays 1-5. */
+      if (skip.has(d + 1)) continue;
+      const day = addDays(frame.start, d);
       if (!day) continue;
-      out.push({ start: day, label: w.label, cycleWeek: w.cycleWeek, teaching: w.teaching });
+      out.push({ start: day, label: frame.label, cycleWeek: frame.cycleWeek, teaching: frame.teaching });
     }
-  }
+  });
   return out;
 }
 

@@ -212,6 +212,48 @@ describe("periods", () => {
     ]);
   });
 
+  test("a daily rota skips the days the school is not in", () => {
+    /* ⚠️ THIS EMITTED MON-FRI UNCONDITIONALLY while its own comment claimed it
+       emitted "every taught weekday" — so a Mon-Thu school got a Friday row
+       every week, and a week with one INSET day got a row for the day the
+       school was shut. */
+    const f = yearFrames(
+      [
+        {
+          monday: "2026-09-07",
+          label: "Week A",
+          cycleWeek: 0,
+          isTeachingWeek: true,
+          /* Friday closed by a closure, and this school never runs Wednesday. */
+          closedWeekdays: [5],
+          untaughtWeekdays: [3],
+        },
+      ],
+      "daily",
+    );
+    expect(f.map((x) => x.start)).toEqual(["2026-09-07", "2026-09-08", "2026-09-10"]);
+  });
+
+  test("a daily rota with no day-level facts still gives all five", () => {
+    /* The optional fields are what keep an older caller working unchanged. */
+    const f = yearFrames(
+      [{ monday: "2026-09-07", label: null, cycleWeek: null, isTeachingWeek: true }],
+      "daily",
+    );
+    expect(f).toHaveLength(5);
+  });
+
+  test("a CLOSED week still produces its days, marked not teaching", () => {
+    /* ⚠️ The row has to survive or `runThroughClosures` has nothing to run
+       through — the same reason a closed week keeps its row everywhere else. */
+    const f = yearFrames(
+      [{ monday: "2026-10-26", label: "Half Term", cycleWeek: null, isTeachingWeek: false }],
+      "daily",
+    );
+    expect(f).toHaveLength(5);
+    expect(f.every((x) => !x.teaching)).toBe(true);
+  });
+
   test("fortnightly over a year takes every other WEEK, closures included", () => {
     /* ⚠️ Counting only teaching weeks would move the check to a different week
        of term after every holiday. */
