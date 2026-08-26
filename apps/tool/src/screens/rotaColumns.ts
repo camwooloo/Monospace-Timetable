@@ -124,6 +124,7 @@ function columns(rota: SchoolRota): HTMLElement {
                     "td",
                     null,
                     h("input.cell.wide", {
+                type: "text",
                       value: col.label,
                       placeholder: "Cleaned (Y/N)",
                       onchange: (e: Event) =>

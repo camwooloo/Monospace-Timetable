@@ -1,8 +1,12 @@
 # Monospace Timetable
 
-Make a school room timetable, and get a properly formatted Excel workbook out of it.
+Two jobs every school does on a spreadsheet, done properly and given away.
 
-Free, no account, no upload. Your timetable stays on your computer.
+**Timetable** — your standing room timetable, as an Excel workbook with one sheet per week.
+**Rota** — the recurring checks that run alongside it: IT rooms cleaned, extinguishers
+inspected, fire doors, minibuses, PAT testing.
+
+Free, no account, no upload. Your work stays on your computer.
 
 ![The standing timetable](docs/screenshots/01-grid-dark.png)
 
@@ -88,6 +92,44 @@ Light theme too, if you prefer:
 
 ---
 
+## The other tab: Rota
+
+A rota is a list of things and a rule for taking turns. Two rooms cleaned a week.
+Four extinguishers a month. A minibus walked round every Friday.
+
+Give it the list, say how often and how many at a time, and it produces the whole
+year — then exports it as a formatted spreadsheet.
+
+![The rota, worked out from the list](docs/screenshots/07-rota-schedule.png)
+
+**Start from a preset.** Eight ship, each with the columns that check actually needs:
+IT room check, fire extinguisher, fire door, minibus walk-round, PAT testing,
+legionella flush, fridge temperature, and a blank one to build your own.
+
+![Choosing a preset](docs/screenshots/10-rota-presets.png)
+
+A preset is a starting point, not a mode — change any of it afterwards and nothing
+puts it back.
+
+**Half turns, paired automatically.** Mark a small room as taking half a turn and the
+rota puts two of them in one slot. The line printed under the title — *N11 + A4,
+H22 + T11, T21 + T22* — is worked out from the rota underneath it rather than typed,
+so the two cannot drift apart. That is the column most schools maintain by hand.
+
+![The list, with weights](docs/screenshots/08-rota-list.png)
+
+**It follows your school year.** Week letters and holidays come from the same calendar
+the timetable prints, so *Week A* and *Half Term* mean the same thing on both sheets.
+A school with no timetable in the file can give a rota its own start and end dates
+instead — you can run a fire-door rota and never touch the timetable half.
+
+**Two exports.** *With data* prints what has been recorded. *Blank template* prints the
+tick columns empty whatever is recorded — the copy that goes on the clipboard.
+
+![Exporting the rota](docs/screenshots/09-rota-export.png)
+
+---
+
 ## Your file
 
 **Save** writes a `.json` file wherever you choose — put it on a shared drive and anyone can open it.
@@ -96,11 +138,15 @@ save and the app says so.
 
 Nothing is uploaded. There is no server. Turn off the internet and it still works.
 
+Timetables and rotas live in the same file, so one `.json` is the school's year.
+
 **And that same file opens in [Monospace](https://www.monospace.page), both ways.** If your school already
 uses Monospace, you can pull a year out of it as a `.timetable.json`, open it here, and build the
 workbook — or do the whole timetable here first and load it into Monospace when you're ready, without
 typing any of it twice. The dates, the cycle, the closures, the day, the rooms and the whole standing
-timetable come across. Bookings don't, and Monospace tells you so before it imports anything.
+timetable come across, and so do your rotas — the list, the weights, the columns and
+anything already recorded against them. Bookings don't, and Monospace tells you what it
+could not bring over before it imports anything.
 
 ---
 

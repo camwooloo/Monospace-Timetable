@@ -486,6 +486,18 @@ label.field > .note {
   color: var(--text-mute);
   letter-spacing: 0;
 }
+/* ⚠️⚠️ `input:not([type])` IS NOT TIDINESS — IT IS THE WHOLE BUG.
+   An attribute selector does NOT match an element that lacks the attribute, so
+   `h("input", …)` with no `type` matched none of the rules below and fell back
+   to the BROWSER DEFAULT: a white box with black text, in the middle of a dark
+   app. `dom.ts`'s `field()` helper defaults `type` to "text" and the older
+   screens set it by hand, which is exactly why this went unnoticed for so long
+   — every input in the app happened to carry one until the rota list did not.
+   Measured in a headless capture of the Rota list: eighteen white boxes.
+
+   ⚠️ AND IT IS `:not([type])` RATHER THAN A BARE `input`. A bare `input` would
+   drag checkboxes and radios into a 12px-radius, 100%-wide text-field style. */
+input:not([type]),
 input[type="text"],
 input[type="date"],
 input[type="time"],
@@ -982,8 +994,23 @@ table.list select {
 .cell.wide {
   min-width: 190px;
 }
+/* ⚠️ ENOUGH FOR THE PLACEHOLDER, which is the thing that clips first. A column
+   sized to its own header ("NAME") is narrower than the word sitting in the box
+   below it, and the box wins the argument by truncating — captured as
+   "optior". A floor on the input makes the column size to the input instead. */
+.cell.mid {
+  min-width: 118px;
+}
 .cell.narrow {
   width: 82px;
+}
+/* ⚠️ A `<select>` INSIDE A NARROW COLUMN CLIPS ITS OWN TEXT. The global rule
+   above sets `width: 100%`, and `.cell` keeps it, so in a table column sized to
+   its header the option text runs under the dropdown arrow — captured reading
+   "Full tur⌄" and "Half —⌄". A floor wide enough for the longest option is the
+   fix; the column then sizes to it rather than the other way round. */
+select.cell {
+  min-width: 132px;
 }
 
 /* Out of service. ⚠️ DIMMED AND STILL EDITABLE — taking something out of a

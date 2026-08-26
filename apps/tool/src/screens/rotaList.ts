@@ -335,6 +335,7 @@ function items(rota: SchoolRota): HTMLElement {
                     "td.mono",
                     null,
                     h("input.cell", {
+                        type: "text",
                       value: item.code,
                       placeholder: "N21",
                       onchange: (e: Event) =>
@@ -344,7 +345,8 @@ function items(rota: SchoolRota): HTMLElement {
                   h(
                     "td",
                     null,
-                    h("input.cell", {
+                    h("input.cell.mid", {
+                        type: "text",
                       value: item.name ?? "",
                       placeholder: "optional",
                       onchange: (e: Event) =>
@@ -356,6 +358,7 @@ function items(rota: SchoolRota): HTMLElement {
                       "td",
                       null,
                       h("input.cell", {
+                        type: "text",
                         value: item.facts?.[k] ?? "",
                         onchange: (e: Event) =>
                           patch(item.id, (i) => {
