@@ -173,6 +173,17 @@ export type SchoolRota = {
    * practice rather than a bug in the source file.
    */
   runThroughClosures?: boolean;
+  /**
+   * ⭐ WHAT THE THINGS ARE CALLED. "Room" gives a sheet named Rooms and a column
+   * headed "Room(s) to Check"; "Extinguisher" gives Extinguishers and
+   * "Extinguisher(s) to Check". Absent gives the generic "Item".
+   *
+   * ⚠️ THIS IS THE WHOLE OF THE GENERALISATION, ON THE PRINTED SIDE. Without it
+   * a school's fire-door rota prints a sheet called "Items" — technically
+   * correct, and not what anybody would have typed. One word, and the workbook
+   * reads as though it were written for the job.
+   */
+  itemNoun?: string;
   /** A line under the title, for "Checked by: CDH" and the like. */
   subtitle?: string;
   /** Recorded values, keyed `${period.start}#${slotIndex}`. */
